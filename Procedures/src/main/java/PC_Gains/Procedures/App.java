@@ -67,8 +67,7 @@ public class App
 				this.nodeId= id;
 				this.dist = depth;
 				this.pathList = pathList;		
-				
-				
+								
 			}
 			String nodeId;
 			double dist = 999;
