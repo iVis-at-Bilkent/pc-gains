@@ -1670,6 +1670,10 @@ public class App {
 				idListWithSiblings.addAll((List<Object>) row.get("idlist"));
 				idListWithSiblings.addAll((List<Object>) row.get("cidlist"));
 			}
+			
+			for (Object item : idListWithSiblings){
+				gOINodeContainer.GOINodeObjectList.put((String)item, new GOINodeObject((String)item, 0));						
+			}
 			Set<Object> FreshIdListToIterate = new HashSet<Object>();
 			Set<Object> OldIdListToIterate = new HashSet<Object>();
 			FreshIdListToIterate.addAll(idListWithSiblings);
