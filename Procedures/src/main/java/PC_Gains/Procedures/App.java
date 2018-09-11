@@ -2779,7 +2779,7 @@ public class App {
 
 		list.forEach(iditem -> {
 			if (iditem != null && iditem != pid) {
-				String k = iditem.toString() + pid;
+				String k =  pid + iditem.toString();
 				freshPidTupleList.put(k, new FreshIdItem(iditem, pid));
 			}
 
