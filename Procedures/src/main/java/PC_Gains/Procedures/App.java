@@ -2459,11 +2459,24 @@ public class App {
 					childglyph.setCompartmentRef(cglyphforCompartment);
 
 				}
-
-				glist.putIfAbsent(childglyph.getId(), childglyph);
-				set.add(childglyph.getId());
-				glyph.getGlyph().add(childglyph);
-
+			
+				if(item.getLabels().iterator().next().toString().replaceAll("_", " ").equals("state variable")){
+					
+		
+					if(!glyph.getGlyph().stream().filter(c ->c. getState().getValue().equals("") || c. getState().getValue().length()>0 ).findAny().isPresent()){
+						glist.putIfAbsent(childglyph.getId(), childglyph);						
+						set.add(childglyph.getId());
+						glyph.getGlyph().add(childglyph);				
+						
+					}		
+				}
+				
+				else{					
+					glist.putIfAbsent(childglyph.getId(), childglyph);					
+					set.add(childglyph.getId());
+					glyph.getGlyph().add(childglyph);		
+					
+				}
 			});
 
 			glist.putIfAbsent(glyph.getId(), glyph);
@@ -2512,7 +2525,18 @@ public class App {
 					statep.setValue(stp);
 					glyphParent.setState(statep);
 
-					glyphParent.getGlyph().add(glyph);
+					if(parent.getLabels().iterator().next().toString().replaceAll("_", " ").equals("state variable")){
+						if(!glyphParent.getGlyph().stream().filter(c -> c.getState().getValue().equals("") || c.getState().getValue().length()>0 ).findAny().isPresent()){
+							glist.putIfAbsent(glyph.getId(), glyph);
+							set.add(glyph.getId());
+							glyphParent.getGlyph().add(glyph);
+						}		
+					}					
+					else{						
+						glist.putIfAbsent(glyph.getId(), glyph);					
+						set.add(glyph.getId());
+						glyphParent.getGlyph().add(glyph);			
+					}
 
 					siblings.forEach(item -> {
 
@@ -2558,9 +2582,21 @@ public class App {
 
 						}
 
-						glist.putIfAbsent(childglyph.getId(), childglyph);
-						set.add(childglyph.getId());
-						glyphParent.getGlyph().add(childglyph);
+						if(item.getLabels().iterator().next().toString().replaceAll("_", " ").equals("state variable")){
+							if(!glyph.getGlyph().stream().filter(c ->c. getState().getValue().equals("") || c. getState().getValue().length()>0).findAny().isPresent()){
+								glist.putIfAbsent(childglyph.getId(), childglyph);						
+								set.add(childglyph.getId());
+								glyph.getGlyph().add(childglyph);				
+								
+							}		
+						}
+						
+						else{					
+							glist.putIfAbsent(childglyph.getId(), childglyph);					
+							set.add(childglyph.getId());
+							glyph.getGlyph().add(childglyph);		
+							
+						}
 
 					});
 				}
@@ -2624,6 +2660,7 @@ public class App {
 			glist.putIfAbsent(glyph.getId(), glyph);
 		}
 	}
+
 
 	private void retrieveRelationsForResultSBGNMap(GraphDatabaseService graphDb, Collection<Relationship> collection,
 			HashMap<String, Glyph> glist, HashMap<String, Port> portlist, org.sbgn.bindings.Map sbgnMap) {
