@@ -727,329 +727,14 @@ public class App {
 
 		}
 
-		String queryF = "Match (g)  where  not g:Port and g in {nodes} optional match (g)<-[:resideIn]-(gc) optional match (g)-[:hasPort]->(p:Port) optional match (g)-[:resideIn]->(prnt) optional match (sblg) - [:resideIn] -> (prnt) where sblg <> g return g, collect(gc) as childGlyph, collect(p) as ports, collect(distinct prnt) as prntList, collect(sblg) as sblgList, count(prnt) as  prntcount  order by prntcount desc";
-
-		Map<String, Object> parametersF = new HashMap<String, Object>();
-		parametersF.put("nodes", nodesListPurify);
-
-		Result resultF = db.execute(queryF, parametersF);
-
-		while (resultF.hasNext()) {
-			Map<String, Object> row = resultF.next();
-
-			List<Node> ports = (List<Node>) row.get("ports");
-			List<Node> childGlyphs = (List<Node>) row.get("childGlyph");
-
-			Glyph glyph;
-			String glyphId = (String) ((Node) row.get("g")).getProperty("id");
-
-			if (glist.containsKey(glyphId))
-				glyph = glist.get(glyphId);
-			else {
-				glyph = new Glyph();
-			}
-
-			glyph.setId(glyphId);
-			glyph.setClazz(((Node) row.get("g")).getLabels().iterator().next().toString().replaceAll("_", " "));
-
-			if (!((String) ((Node) row.get("g")).getProperty("compRef")).equals("notexist")) {
-				Glyph glyphforCompartment = new Glyph();
-				comprefList.add((String) ((Node) row.get("g")).getProperty("compRef"));
-				glyphforCompartment.setId((String) ((Node) row.get("g")).getProperty("compRef"));
-				// get compref here
-				glyph.setCompartmentRef(glyphforCompartment);
-			}
-			Bbox bBox = new Bbox();
-			float x = (float) ((Node) row.get("g")).getProperty("x");
-			float y = (float) ((Node) row.get("g")).getProperty("y");
-			float w = (float) ((Node) row.get("g")).getProperty("w");
-			float h = (float) ((Node) row.get("g")).getProperty("h");
-			bBox.setH((float) h);
-			bBox.setW((float) w);
-			bBox.setX((float) x);
-			bBox.setY((float) y);
-
-			glyph.setBbox(bBox);
-
-			org.sbgn.bindings.Label label = new org.sbgn.bindings.Label();
-			String lbl = (String) ((Node) row.get("g")).getProperty("label");
-			label.setText(lbl);
-			glyph.setLabel(label);
-
-			State state = new State();
-			String st = (String) ((Node) row.get("g")).getProperty("stateVal");
-			state.setValue(st);
-			glyph.setState(state);
-
-			// ports
-			ports.forEach(item -> {
-				Port port = new Port();
-				float xPort = (float) item.getProperty("x");
-				float yPort = (float) item.getProperty("y");
-				String Pid = (String) item.getProperty("id");
-
-				port.setId(Pid);
-				port.setX((int) xPort);
-				port.setY((int) yPort);
-
-				glyph.getPort().add(port);
-				portlist.put(Pid, port);
-
-			});
-
-			childGlyphs.forEach(item -> {
-
-				Glyph childglyph;
-				String childglyphId = (String) item.getProperty("id");
-
-				if (glist.containsKey(childglyphId))
-					childglyph = glist.get(childglyphId);
-				else {
-					childglyph = new Glyph();
-				}
-				childglyph.setId(childglyphId);
-
-				childglyph.setClazz(item.getLabels().iterator().next().toString().replaceAll("_", " "));
-				Bbox childbBox = new Bbox();
-				float cx = (float) item.getProperty("x");
-				float cy = (float) item.getProperty("y");
-				float cw = (float) item.getProperty("w");
-				float ch = (float) item.getProperty("h");
-
-				childbBox.setH((float) ch);
-				childbBox.setW((float) cw);
-				childbBox.setX((float) cx);
-				childbBox.setY((float) cy);
-
-				childglyph.setBbox(childbBox);
-
-				org.sbgn.bindings.Label childlabel = new org.sbgn.bindings.Label();
-				String clbl = (String) item.getProperty("label");
-				childlabel.setText(clbl);
-				childglyph.setLabel(childlabel);
-
-				State cstate = new State();
-				String cst = (String) item.getProperty("stateVal");
-				cstate.setValue(cst);
-				childglyph.setState(cstate);
-
-				if (!((String) item.getProperty("compRef")).equals("notexist")) {
-					comprefList.add((String) item.getProperty("compRef"));
-					Glyph cglyphforCompartment = new Glyph();
-					cglyphforCompartment.setId((String) item.getProperty("compRef"));
-					childglyph.setCompartmentRef(cglyphforCompartment);
-
-				}
-
-				glist.putIfAbsent(childglyph.getId(), childglyph);
-				set.add(childglyph.getId());
-				glyph.getGlyph().add(childglyph);
-
-			});
-
-			glist.putIfAbsent(glyph.getId(), glyph);
-
-			List<Node> siblings = (List<Node>) row.get("sblgList");
-			List<Node> parentList = (List<Node>) row.get("prntList");
-
-			if (parentList.size() > 0) {
-				Node parent = parentList.get(0);
-				Glyph glyphParent;
-				String glyphParentId = (String) (parent).getProperty("id");
-
-				if (glist.containsKey(glyphParentId))
-					glyphParent = glist.get(glyphParentId);
-				else {
-					glyphParent = new Glyph();
-
-					glyphParent.setId(glyphParentId);
-
-					glyphParent.setClazz(parent.getLabels().iterator().next().toString().replaceAll("_", " "));
-
-					if (!((String) parent.getProperty("compRef")).equals("notexist")) {
-						Glyph glyphforCompartmentp = new Glyph();
-						comprefList.add((String) parent.getProperty("compRef"));
-						glyphforCompartmentp.setId((String) parent.getProperty("compRef"));
-						glyph.setCompartmentRef(glyphforCompartmentp);
-					}
-					Bbox bBoxp = new Bbox();
-					float xxx = (float) parent.getProperty("x");
-					float yyy = (float) parent.getProperty("y");
-					float www = (float) parent.getProperty("w");
-					float hhh = (float) parent.getProperty("h");
-					bBoxp.setH((float) hhh);
-					bBoxp.setW((float) www);
-					bBoxp.setX((float) xxx);
-					bBoxp.setY((float) yyy);
-
-					glyphParent.setBbox(bBoxp);
-
-					org.sbgn.bindings.Label labelp = new org.sbgn.bindings.Label();
-					String lblp = (String) parent.getProperty("label");
-					labelp.setText(lblp);
-					glyphParent.setLabel(labelp);
-
-					State statep = new State();
-					String stp = (String) parent.getProperty("stateVal");
-					statep.setValue(stp);
-					glyphParent.setState(statep);
-
-					glyphParent.getGlyph().add(glyph);
-
-					siblings.forEach(item -> {
-
-						Glyph childglyph;
-						String childglyphId = (String) item.getProperty("id");
-
-						if (glist.containsKey(childglyphId))
-							childglyph = glist.get(childglyphId);
-						else {
-							childglyph = new Glyph();
-						}
-						childglyph.setId(childglyphId);
-
-						childglyph.setClazz(item.getLabels().iterator().next().toString().replaceAll("_", " "));
-						Bbox childbBox = new Bbox();
-						float cx = (float) item.getProperty("x");
-						float cy = (float) item.getProperty("y");
-						float cw = (float) item.getProperty("w");
-						float ch = (float) item.getProperty("h");
-
-						childbBox.setH((float) ch);
-						childbBox.setW((float) cw);
-						childbBox.setX((float) cx);
-						childbBox.setY((float) cy);
-
-						childglyph.setBbox(childbBox);
-
-						org.sbgn.bindings.Label childlabel = new org.sbgn.bindings.Label();
-						String clbl = (String) item.getProperty("label");
-						childlabel.setText(clbl);
-						childglyph.setLabel(childlabel);
-
-						State cstate = new State();
-						String cst = (String) item.getProperty("stateVal");
-						cstate.setValue(cst);
-						childglyph.setState(cstate);
-
-						if (!((String) item.getProperty("compRef")).equals("notexist")) {
-							comprefList.add((String) item.getProperty("compRef"));
-							Glyph cglyphforCompartment = new Glyph();
-							cglyphforCompartment.setId((String) item.getProperty("compRef"));
-							childglyph.setCompartmentRef(cglyphforCompartment);
-
-						}
-
-						glist.putIfAbsent(childglyph.getId(), childglyph);
-						set.add(childglyph.getId());
-						glyphParent.getGlyph().add(childglyph);
-
-					});
-				}
-				glist.putIfAbsent(glyphParent.getId(), glyphParent);
-			}
-		}
-
-		String queryComprefs = "Match (g)  where g.id in {comprefIds} return g";
-
-		Map<String, Object> parametersComprefs = new HashMap<String, Object>();
-		parametersComprefs.put("comprefIds", comprefList.toArray());
-		Result resultCompRef = db.execute(queryComprefs, parametersComprefs);
-
-		while (resultCompRef.hasNext()) {
-			Map<String, Object> row = resultCompRef.next();
-
-			Glyph glyph;
-			String glyphId = (String) ((Node) row.get("g")).getProperty("id");
-			if (glist.containsKey(glyphId))
-				glyph = glist.get(glyphId);
-			else { 
-				glyph = new Glyph();
-			}
-
-			glyph.setId(glyphId);
-
-			glyph.setClazz(((Node) row.get("g")).getLabels().iterator().next().toString().replaceAll("_", " "));
-
-			if (!((String) ((Node) row.get("g")).getProperty("compRef")).equals("notexist")) {
-				Glyph glyphforCompartment = new Glyph();
-				comprefList.add((String) ((Node) row.get("g")).getProperty("compRef"));
-				glyphforCompartment.setId((String) ((Node) row.get("g")).getProperty("compRef"));
-				glyph.setCompartmentRef(glyphforCompartment);
-			}
-			Bbox bBox = new Bbox();
-			float x = (float) ((Node) row.get("g")).getProperty("x");
-			float y = (float) ((Node) row.get("g")).getProperty("y");
-			float w = (float) ((Node) row.get("g")).getProperty("w");
-			float h = (float) ((Node) row.get("g")).getProperty("h");
-			bBox.setH((float) h);
-			bBox.setW((float) w);
-			bBox.setX((float) x);
-			bBox.setY((float) y);
-
-			glyph.setBbox(bBox);
-
-			org.sbgn.bindings.Label label = new org.sbgn.bindings.Label();
-			String lbl = (String) ((Node) row.get("g")).getProperty("label");
-			label.setText(lbl);
-			glyph.setLabel(label);
-
-			State state = new State();
-			String st = (String) ((Node) row.get("g")).getProperty("stateVal");
-			state.setValue(st);
-			glyph.setState(state);
-			glist.putIfAbsent(glyph.getId(), glyph);
-		}
-
-		String query = "MATCH (a)-[r]->(b) where r.startX is not null  and r in {rels} return a.id as sid,b.id as tid, r.startX as xx,r.startY as yy, r.endX as ex, r.endY as ey, r.aid as id, type(r) as class";
-
-		Map<String, Object> parameters1 = new HashMap<String, Object>();
-
-		parameters1.put("rels", relsListPurify);
-
-		Result result2 = db.execute(query, parameters1);
-
-		while (result2.hasNext()) {
-			Map<String, Object> row2 = result2.next();
-
-			float startX = (float) row2.get("xx");
-			float startY = (float) row2.get("yy");
-			Start start = new Start();
-			start.setX((float) startX);
-			start.setY((float) startY);
-			float endX = (float) row2.get("ex");
-			float endY = (float) row2.get("ey");
-			String aid = (String) row2.get("id");
-			String clazz = (String) row2.get("class");
-			End end = new End();
-			end.setX((float) endX);
-			end.setY((float) endY);
-			Arc arc = new Arc();
-			arc.setClazz(clazz);
-			arc.setId(aid);
-			arc.setEnd(end);
-			arc.setStart(start);
-			if (glist.get(row2.get("sid")) != null) {
-				arc.setSource(glist.get(row2.get("sid")));
-			} else {
-				arc.setSource(portlist.get(row2.get("sid")));
-			}
-
-			if (glist.get(row2.get("tid")) != null) {
-				arc.setTarget(glist.get(row2.get("tid")));
-			} else {
-				arc.setTarget(portlist.get(row2.get("tid")));
-			}
-
-			sbgnMap.getArc().add(arc);
-		}
-
-		int cnts = 1;
+		Traverse1AndExtractRelationsAndNodeForProcesses(db, nodesListPurify, relsListPurify);	
+		retrieveNodesForFinalSBGNMap(db, nodesListPurify, glist, portlist, set);
+		retrieveRelationsForResultSBGNMap(db, relsListPurify, glist, portlist, sbgnMap);
 		glist.keySet().removeAll(set);
 		for (Iterator<Glyph> iterator = glist.values().iterator(); iterator.hasNext();) {
 			Glyph value = iterator.next();
 			sbgnMap.getGlyph().add(value);
-			cnts++;
+			
 		}
 		Sbgn sss = new Sbgn();
 		sss.setMap(sbgnMap);
@@ -1262,9 +947,14 @@ public class App {
 			}
 
 		});
-
-		retrieveNodesForFinalSBGNMap(db, nodesList.values(), glist, portlist, set);
-		retrieveRelationsForResultSBGNMap(db, relsList.values(), glist, portlist, sbgnMap);	
+		Set<Node> nodesListPurify = new HashSet<Node>();
+		Set<Relationship> relsListPurify = new HashSet<Relationship>();
+		nodesListPurify.addAll(nodesList.values());
+		relsListPurify.addAll(relsList.values());
+		
+		Traverse1AndExtractRelationsAndNodeForProcesses(db, nodesListPurify, relsListPurify);	
+		retrieveNodesForFinalSBGNMap(db, nodesListPurify, glist, portlist, set);
+		retrieveRelationsForResultSBGNMap(db, relsListPurify, glist, portlist, sbgnMap);
 		
 		glist.keySet().removeAll(set);
 		for (Iterator<Glyph> iterator = glist.values().iterator(); iterator.hasNext();) {
@@ -1610,6 +1300,7 @@ public class App {
 			}
 		}
 
+		Traverse1AndExtractRelationsAndNodeForProcesses(db, nodesListPurify, relsListPurify);	
 		retrieveNodesForFinalSBGNMap(db, nodesListPurify, glist, portlist, set);
 		retrieveRelationsForResultSBGNMap(db, relsListPurify, glist, portlist, sbgnMap);
 
@@ -1977,7 +1668,7 @@ public class App {
 		HashMap<String, Port> portlist = new HashMap<String, Port>();
 		org.sbgn.bindings.Map sbgnMap = new org.sbgn.bindings.Map();
 		Set<String> set = new HashSet<>();
-
+		Traverse1AndExtractRelationsAndNodeForProcesses(db, nodesListPurify, relsListPurify);	
 		retrieveNodesForFinalSBGNMap(db, nodesListPurify, glist, portlist, set);
 		retrieveRelationsForResultSBGNMap(db, relsListPurify, glist, portlist, sbgnMap);
 		glist.keySet().removeAll(set);
@@ -2459,24 +2150,11 @@ public class App {
 					childglyph.setCompartmentRef(cglyphforCompartment);
 
 				}
-			
-				if(item.getLabels().iterator().next().toString().replaceAll("_", " ").equals("state variable")){
-					
-		
-					if(!glyph.getGlyph().stream().filter(c ->c. getState().getValue().equals("") || c. getState().getValue().length()>0 ).findAny().isPresent()){
-						glist.putIfAbsent(childglyph.getId(), childglyph);						
-						set.add(childglyph.getId());
-						glyph.getGlyph().add(childglyph);				
-						
-					}		
-				}
-				
-				else{					
-					glist.putIfAbsent(childglyph.getId(), childglyph);					
-					set.add(childglyph.getId());
-					glyph.getGlyph().add(childglyph);		
-					
-				}
+
+				glist.putIfAbsent(childglyph.getId(), childglyph);
+				set.add(childglyph.getId());
+				glyph.getGlyph().add(childglyph);
+
 			});
 
 			glist.putIfAbsent(glyph.getId(), glyph);
@@ -2525,18 +2203,7 @@ public class App {
 					statep.setValue(stp);
 					glyphParent.setState(statep);
 
-					if(parent.getLabels().iterator().next().toString().replaceAll("_", " ").equals("state variable")){
-						if(!glyphParent.getGlyph().stream().filter(c -> c.getState().getValue().equals("") || c.getState().getValue().length()>0 ).findAny().isPresent()){
-							glist.putIfAbsent(glyph.getId(), glyph);
-							set.add(glyph.getId());
-							glyphParent.getGlyph().add(glyph);
-						}		
-					}					
-					else{						
-						glist.putIfAbsent(glyph.getId(), glyph);					
-						set.add(glyph.getId());
-						glyphParent.getGlyph().add(glyph);			
-					}
+					glyphParent.getGlyph().add(glyph);
 
 					siblings.forEach(item -> {
 
@@ -2582,21 +2249,9 @@ public class App {
 
 						}
 
-						if(item.getLabels().iterator().next().toString().replaceAll("_", " ").equals("state variable")){
-							if(!glyph.getGlyph().stream().filter(c ->c. getState().getValue().equals("") || c. getState().getValue().length()>0).findAny().isPresent()){
-								glist.putIfAbsent(childglyph.getId(), childglyph);						
-								set.add(childglyph.getId());
-								glyph.getGlyph().add(childglyph);				
-								
-							}		
-						}
-						
-						else{					
-							glist.putIfAbsent(childglyph.getId(), childglyph);					
-							set.add(childglyph.getId());
-							glyph.getGlyph().add(childglyph);		
-							
-						}
+						glist.putIfAbsent(childglyph.getId(), childglyph);
+						set.add(childglyph.getId());
+						glyphParent.getGlyph().add(childglyph);
 
 					});
 				}
@@ -2660,6 +2315,7 @@ public class App {
 			glist.putIfAbsent(glyph.getId(), glyph);
 		}
 	}
+
 
 
 	private void retrieveRelationsForResultSBGNMap(GraphDatabaseService graphDb, Collection<Relationship> collection,
@@ -2832,4 +2488,142 @@ public class App {
 		});
 
 	}
+	
+private void traverse1(GraphDatabaseService graphDb,Node blistitem,  Set<Path> pathList  ) {
+		
+		if(blistitem != null){
+
+			double direction =0;
+			
+			for(org.neo4j.graphdb.Label blistitemlabel : blistitem.getLabels()) {
+				
+				if (blistitemlabel.name().equals("Port")) {
+
+					String query3 = ifGlyphIsPort(direction);					
+					Map<String, Object> parameters3 = new HashMap<String, Object>();				
+					parameters3.put("id", blistitem.getProperty("id"));
+					Result result3 = graphDb.execute(query3, parameters3);			
+					while (result3.hasNext()) {
+						Map<String, Object> row3 = result3.next();		
+						pathList.addAll((List<Path>) row3.get("pathList"));
+					}
+				
+				} else if (blistitemlabel.name().equals("process")) {
+
+					String query3 = ifGlyphIsProcess(direction);
+
+					Map<String, Object> parameters3 = new HashMap<String, Object>();					
+					parameters3.put("id", blistitem.getProperty("id"));
+					Result result3 = graphDb.execute(query3, parameters3);
+					while (result3.hasNext()) {
+						Map<String, Object> row3 = result3.next();					;
+						pathList.addAll((List<Path>) row3.get("pathList"));					
+
+					}
+				} else if (blistitemlabel.name().equals("omitted_process")) {
+
+				
+					String query3 = ifGlyphIsOmittedProcess(direction);
+
+					Map<String, Object> parameters3 = new HashMap<String, Object>();
+			
+					parameters3.put("id", blistitem.getProperty("id"));
+
+					Result result3 = graphDb.execute(query3, parameters3);
+					
+					while (result3.hasNext()) {
+						Map<String, Object> row3 = result3.next();
+						pathList.addAll((List<Path>) row3.get("pathList"));
+					}
+
+				} else if (blistitemlabel.name().equals("uncertain_process")) {
+					
+					String query3 = ifGlyphIsUncertainProcess(direction);
+
+					Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+					parameters3.put("id", blistitem.getProperty("id"));
+
+					Result result3 = graphDb.execute(query3, parameters3);
+				
+					while (result3.hasNext()) {
+						Map<String, Object> row3 = result3.next();						
+						pathList.addAll((List<Path>) row3.get("pathList"));	
+					}
+
+				} else if (blistitemlabel.name().equals("association")) {											
+
+					String query3 = ifGlyphIsAssociation(direction);
+
+					Map<String, Object> parameters3 = new HashMap<String, Object>();
+				
+					parameters3.put("id", blistitem.getProperty("id"));
+
+					Result result3 = graphDb.execute(query3, parameters3);
+					
+					while (result3.hasNext()) {
+						Map<String, Object> row3 = result3.next();					
+						pathList.addAll((List<Path>) row3.get("pathList"));
+					}
+
+				} else if (blistitemlabel.name().equals("dissociation")) {
+
+					String query3 = ifGlyphIsDissociation(direction);
+					Map<String, Object> parameters3 = new HashMap<String, Object>();
+					parameters3.put("id", blistitem.getProperty("id"));
+					Result result3 = graphDb.execute(query3, parameters3);
+					while (result3.hasNext()) {
+						Map<String, Object> row3 = result3.next();
+						pathList.addAll((List<Path>) row3.get("pathList"));
+					}
+
+				}
+
+				else {
+					;
+				}		
+				
+			}	
+		}
+	}
+
+	
+	private void Traverse1AndExtractRelationsAndNodeForProcesses(GraphDatabaseService graphDb,
+			Set<Node> nodesListPurify, Set<Relationship> relsListPurify) {
+		Set<Path> pathListforPostProcess = new HashSet<Path>();
+		for( Node item : nodesListPurify){
+			
+			traverse1(graphDb, item, pathListforPostProcess);
+			
+		}
+		
+		pathListforPostProcess.forEach(pathitem -> {
+			  
+			  if (pathitem!= null && pathitem.relationships() != null) {
+			 
+			  pathitem.relationships().forEach(relitem -> {  
+				if(relitem != null  && ! relsListPurify.stream().filter(r-> r.getId() == relitem.getId()).findAny().isPresent())
+				{
+					relsListPurify.add(relitem);
+					
+				}
+			  
+			  });
+			 
+			 } 
+			  
+			  if (pathitem!= null && pathitem.nodes() != null) {
+					 
+				  pathitem.nodes().forEach(nodeitem -> {
+					  if (nodeitem != null && !nodesListPurify.stream().filter(n-> n.getId() == nodeitem.getId()).findAny().isPresent() )
+					  { 						
+						  nodesListPurify.add( nodeitem); 								  
+					  }
+				  });						 
+				 } 					  
+		}				
+			 
+			 );
+	}
+
 }
