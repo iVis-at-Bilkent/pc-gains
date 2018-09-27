@@ -2309,7 +2309,6 @@ public class App {
 			String st = (String) ((Node) row.get("g")).getProperty("stateVal");
 			state.setValue(st);
 			glyph.setState(state);
-
 			// ports
 
 			glist.putIfAbsent(glyph.getId(), glyph);
