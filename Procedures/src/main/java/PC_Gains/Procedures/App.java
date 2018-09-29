@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -61,47 +62,46 @@ public class App {
 		Path apath;
 	}
 
-	class PathsBetweenRoot {
-
-		PathsBetweenRoot(String id, double depth) {
-			this.nodeId = id;
-			this.dist = depth;
-
+	class PathsBetweenRoot {	
+		
+		PathsBetweenRoot( String id , double depth){
+			this.nodeId= id;
+			this.dist = depth;		
+			
 		}
-
 		String nodeId;
-		double dist = 999;
+		double dist = 999;	
 		Set<Object> FreshIdListToIterate = new HashSet<Object>();
 		Set<Object> OldIdListToIterate = new HashSet<Object>();
-		Set<Path> pathList = new HashSet<Path>();
-		HashMap<String, PathListITem> PathListContainer = new HashMap<String, PathListITem>();
+		Set<Path> pathList = new HashSet<Path>();	
+	    Set<PathListITem> PathListContainer = new HashSet<PathListITem>();	;	
 		HashMap<String, FreshIdItem> FreshIdMap = new HashMap<String, FreshIdItem>();
 
 	}
 
-	class FreshIdItem {
-
-		FreshIdItem(Object sid, Object pid) {
+	class FreshIdItem{
+		
+		FreshIdItem(Object sid , Object pid){
 			this.pid = pid;
-			this.sid = sid;
-
+			this.sid = sid;	
+			
 		}
-
 		Object pid;
-		Object sid;
+		 Object sid;
 	}
 
-	class PathListITem {
-		Set<String> pathNodeIdList = new HashSet<String>();
-
-		PathListITem(String endNodeId, double d) {
+	class PathListITem{
+		Set<String> pathNodeIdList= new HashSet<String>();
+		
+		PathListITem(String key, String endNodeId, double d){
+			this.key =key;
 			this.endNodeDepth = d;
-			this.endNodeId = endNodeId;
+			this.endNodeId = endNodeId;		
 		}
-
 		String endNodeId;
+		String key;
 		double endNodeDepth;
-
+		
 	}
 
 	public class Output {
@@ -143,7 +143,15 @@ public class App {
 			InsertArc(a);
 
 		}
+		/*
+		String compartmnetResideInQuery ="Match (a) where a.compRef <> {notexist} with a match (b:compartment) where b.id = a.compRef with a, b merge (a)-[:resideIn {aid: {aid}}]->(b)";
+		
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put("notexist", "notexist");
+		parameters.put("aid", 999);
 
+		db.execute(compartmnetResideInQuery, parameters);
+		*/
 		return Stream.of(new Output(writeToString1(sbgn)));
 	}
 
@@ -969,352 +977,362 @@ public class App {
 
 	private String PathsBetweenFunc(String genesList, String genesListTarget, double limita, double addition)
 			throws JAXBException {
+				int direction = 0;
 
-		int direction = 0;
+				HashMap<String, Glyph> glist = new HashMap<String, Glyph>();
+				HashMap<String, Port> portlist = new HashMap<String, Port>();
+				org.sbgn.bindings.Map sbgnMap = new org.sbgn.bindings.Map();
+				Set<String> set = new HashSet<>();
 
-		HashMap<String, Glyph> glist = new HashMap<String, Glyph>();
-		HashMap<String, Port> portlist = new HashMap<String, Port>();
-		org.sbgn.bindings.Map sbgnMap = new org.sbgn.bindings.Map();
-		Set<String> set = new HashSet<>();
+				Set<Node> nodesListPurify = new HashSet<Node>();
+				Set<Relationship> relsListPurify = new HashSet<Relationship>();
 
-		Set<Node> nodesListPurify = new HashSet<Node>();
-		Set<Relationship> relsListPurify = new HashSet<Relationship>();
+				String queryT = "match (a) where a.label in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
 
-		String queryT = "match (a) where a.label in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
+				Map<String, Object> parametersT = new HashMap<String, Object>();
+				parametersT.put("lists", genesListTarget.split(" "));
 
-		Map<String, Object> parametersT = new HashMap<String, Object>();
-		parametersT.put("lists", genesListTarget.split(" "));
+				Result resultT = db.execute(queryT, parametersT);
 
-		Result resultT = db.execute(queryT, parametersT);
-
-		Set<Object> idListTarget = new HashSet<Object>();
-		while (resultT.hasNext()) {
-			Map<String, Object> row = resultT.next();
-			idListTarget.addAll((List<Object>) row.get("idlist"));
-			idListTarget.addAll((List<Object>) row.get("cidlist"));
-		}
-
-		String queryM = "match (a) where a.label in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
-
-		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.split(" "));
-
-		Result result = db.execute(queryM, parameters);
-
-		Set<Object> idList = new HashSet<Object>();
-		while (result.hasNext()) {
-			Map<String, Object> row = result.next();
-			idList.addAll((List<Object>) row.get("idlist"));
-			idList.addAll((List<Object>) row.get("cidlist"));
-		}
-
-		int limit = (int) limita;
-
-		double shortestlength = 9999;
-		Set<PathsBetweenRoot> PathsBetweenRootList = new HashSet<PathsBetweenRoot>();
-
-		for (Object idListItem : idList) {
-
-			PathsBetweenRoot root = new PathsBetweenRoot(idListItem.toString(), 0);
-
-			String queryM2 = "match (a) where a.id = {id}  optional match (a)-[:resideIn*]-(c) where not c:state_variable  return  collect(a.id) as idlist, collect(c.id) as cidlist";
-
-			Map<String, Object> parameterse = new HashMap<String, Object>();
-			parameterse.put("id", idListItem);
-
-			Result resulte = db.execute(queryM2, parameterse);
-
-			Set<Object> idListWithSiblings = new HashSet<Object>();
-			while (resulte.hasNext()) {
-				Map<String, Object> row = resulte.next();
-				idListWithSiblings.addAll((List<Object>) row.get("idlist"));
-			}
-
-			root.FreshIdListToIterate.addAll(idListWithSiblings);
-			PathListITem rootItem = new PathListITem(idListItem.toString(), 0);
-			rootItem.pathNodeIdList.add(idListItem.toString());
-			AddToFreshPidTupleList(root.FreshIdMap, idListWithSiblings, "");
-			root.PathListContainer.put(idListItem.toString() + ":0.0", rootItem);
-
-			PathsBetweenRootList.add(root);
-		}
-
-		double count = 0;
-
-		while (count < limita && count < shortestlength + addition) {
-
-			for (PathsBetweenRoot root : PathsBetweenRootList) {
-
-				root.FreshIdListToIterate.removeAll(root.OldIdListToIterate);
-
-				String query = "match p= (a)--(b)  where a.id in {lists} optional match p2 = (b)-[:resideIn*]-(c) return a.id as pid, [b, c] as blist, [p , p2] as p2List";
-				Map<String, Object> parametersr = new HashMap<String, Object>();
-				parametersr.put("lists", root.FreshIdListToIterate);
-
-				Result result2 = db.execute(query, parametersr);
-				root.OldIdListToIterate.addAll(root.FreshIdListToIterate);
-				root.FreshIdListToIterate.clear();
-
-				while (result2.hasNext()) {
-					Map<String, Object> row = result2.next();
-
-					String pid = (String) row.get("pid");
-
-					// TODO diger proclara uygula
-					root.pathList.addAll((List<Path>) row.get("p2List"));
-					Set<Node> nodebLists = new HashSet<Node>((List<Node>) row.get("blist"));
-
-					for (Node blistitem : nodebLists) {
-
-						if (blistitem != null) {
-
-							blistitem.getLabels().forEach(blistitemlabel -> {
-
-								if (blistitemlabel.name().equals("Port")) {
-
-									String query3 = ifGlyphIsPort(direction);
-									Map<String, Object> parameters3 = new HashMap<String, Object>();
-
-									parameters3.put("id", blistitem.getProperty("id"));
-
-									Result result3 = db.execute(query3, parameters3);
-
-									while (result3.hasNext()) {
-										Map<String, Object> row3 = result3.next();
-
-										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
-										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
-										root.pathList.addAll((List<Path>) row3.get("pathList"));
-									}
-
-								} else if (blistitemlabel.name().equals("process")) {
-
-									String query3 = ifGlyphIsProcess(direction);
-
-									Map<String, Object> parameters3 = new HashMap<String, Object>();
-
-									parameters3.put("id", blistitem.getProperty("id"));
-
-									Result result3 = db.execute(query3, parameters3);
-
-									while (result3.hasNext()) {
-										Map<String, Object> row3 = result3.next();
-
-										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
-										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
-										root.pathList.addAll((List<Path>) row3.get("pathList"));
-
-									}
-								} else if (blistitemlabel.name().equals("omitted_process")) {
-
-									String query3 = ifGlyphIsOmittedProcess(direction);
-
-									Map<String, Object> parameters3 = new HashMap<String, Object>();
-
-									parameters3.put("id", blistitem.getProperty("id"));
-									Result result3 = db.execute(query3, parameters3);
-
-									while (result3.hasNext()) {
-										Map<String, Object> row3 = result3.next();
-										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
-										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
-										root.pathList.addAll((List<Path>) row3.get("pathList"));
-									}
-
-								} else if (blistitemlabel.name().equals("uncertain_process")) {
-
-									String query3 = ifGlyphIsUncertainProcess(direction);
-
-									Map<String, Object> parameters3 = new HashMap<String, Object>();
-
-									parameters3.put("id", blistitem.getProperty("id"));
-									Result result3 = db.execute(query3, parameters3);
-
-									while (result3.hasNext()) {
-										Map<String, Object> row3 = result3.next();
-										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
-										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
-										root.pathList.addAll((List<Path>) row3.get("pathList"));
-
-									}
-
-								} else if (blistitemlabel.name().equals("association")) {
-
-									String query3 = ifGlyphIsAssociation(direction);
-
-									Map<String, Object> parameters3 = new HashMap<String, Object>();
-
-									parameters3.put("id", blistitem.getProperty("id"));
-
-									Result result3 = db.execute(query3, parameters3);
-
-									while (result3.hasNext()) {
-										Map<String, Object> row3 = result3.next();
-										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
-										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
-										root.pathList.addAll((List<Path>) row3.get("pathList"));
-
-									}
-
-								} else if (blistitemlabel.name().equals("dissociation")) {
-
-									String query3 = ifGlyphIsDissociation(direction);
-
-									Map<String, Object> parameters3 = new HashMap<String, Object>();
-
-									parameters3.put("id", blistitem.getProperty("id"));
-
-									Result result3 = db.execute(query3, parameters3);
-
-									while (result3.hasNext()) {
-										Map<String, Object> row3 = result3.next();
-										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
-										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
-										root.pathList.addAll((List<Path>) row3.get("pathList"));
-									}
-								}
-
-								else {
-									root.FreshIdListToIterate.add(blistitem.getProperty("id"));
-									List<Object> lst = new ArrayList<Object>();
-									lst.add(blistitem.getProperty("id"));
-									AddToFreshPidTupleList(root.FreshIdMap, lst, pid);
-									root.pathList.addAll((List<Path>) row.get("p2List"));
-								}
-
-								if (blistitemlabel.name().equals("complex")) {
-
-									String query3 = "match  (c:complex) where c.id = {id}  optional match p1= (c)-[:resideIn*]-(a)   unwind nodes(p1) as p1Node with DISTINCT p1Node, p1  return collect(p1Node.id) as idList,  [p1] as pathList";
-									Map<String, Object> parameters3 = new HashMap<String, Object>();
-
-									parameters3.put("id", blistitem.getProperty("id"));
-
-									Result result3 = db.execute(query3, parameters3);
-
-									while (result3.hasNext()) {
-										Map<String, Object> row3 = result3.next();
-										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
-										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
-										root.pathList.addAll((List<Path>) row3.get("pathList"));
-
-									}
-
-								}
-							});
-						}
-
-					}
-				}
-				addPathItemToPathListContainerOfRoot(count, root);
-
-				if (shortestlength == 9999 && !Collections.disjoint(root.FreshIdListToIterate, idListTarget)) {
-					shortestlength = count + 1;
+				Set<Object> idListTarget = new HashSet<Object>();
+				while (resultT.hasNext()) {
+					Map<String, Object> row = resultT.next();
+					idListTarget.addAll((List<Object>) row.get("idlist"));
+					idListTarget.addAll((List<Object>) row.get("cidlist"));
 				}
 
-			}
-			count++;
-		}
+				String queryM = "match (a) where a.label in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
 
-		for (PathsBetweenRoot rootItem : PathsBetweenRootList) {
+				Map<String, Object> parameters = new HashMap<String, Object>();
+				parameters.put("lists", genesList.split(" "));
 
-			for (PathListITem ptlItem : rootItem.PathListContainer.values()) {
+				Result result = db.execute(queryM, parameters);
 
-				if (idListTarget.contains(ptlItem.endNodeId)) {
+				Set<Object> idList = new HashSet<Object>();
+				while (result.hasNext()) {
+					Map<String, Object> row = result.next();
+					idList.addAll((List<Object>) row.get("idlist"));
+					idList.addAll((List<Object>) row.get("cidlist"));
+				}
 
-					String queryToGetCompoundNodes = "match (a) where a.id in {SourceidList} optional match p1= (a)-[:resideIn*]-(b) unwind nodes(p1) as p1Node   return collect(p1Node.id) as cmpndNodes";
+				int limit = (int) limita;
 
-					Map<String, Object> parametersGetCompoundNodes = new HashMap<String, Object>();
+				double shortestlength = 9999;
+				Set<PathsBetweenRoot> PathsBetweenRootList = new HashSet<PathsBetweenRoot>();
 
-					parametersGetCompoundNodes.put("SourceidList", ptlItem.pathNodeIdList);
-					Set<String> pathNodeIdList = new HashSet<String>();
-					Result resultGetCompoundNodes = db.execute(queryToGetCompoundNodes, parametersGetCompoundNodes);
-					Set<Node> NodeListForPurifyQuery = new HashSet<Node>();
-					while (resultGetCompoundNodes.hasNext()) {
-						Map<String, Object> rowGetCompoundNodes = resultGetCompoundNodes.next();
-						pathNodeIdList.addAll((List<String>) rowGetCompoundNodes.get("cmpndNodes"));
+				for (Object idListItem : idList) {
+
+					PathsBetweenRoot root = new PathsBetweenRoot(idListItem.toString(), 0);
+
+					String queryM2 = "match (a) where a.id = {id}  optional match (a)-[:resideIn*]-(c) where not c:state_variable  return  collect(a.id) as idlist, collect(c.id) as cidlist";
+
+					Map<String, Object> parameterse = new HashMap<String, Object>();
+					parameterse.put("id", idListItem);
+
+					Result resulte = db.execute(queryM2, parameterse);
+
+					Set<Object> idListWithSiblings = new HashSet<Object>();
+					while (resulte.hasNext()) {
+						Map<String, Object> row = resulte.next();
+						idListWithSiblings.addAll((List<Object>) row.get("idlist"));
 					}
-					pathNodeIdList.addAll(ptlItem.pathNodeIdList);
-					HashMap<String, Node> nodesList = new HashMap<String, Node>();
-					rootItem.pathList.forEach(pathItem -> {
 
-						if (pathItem != null) {
+					root.FreshIdListToIterate.addAll(idListWithSiblings);
+					PathListITem rootItem = new PathListITem(idListItem.toString() + ":0.0", idListItem.toString(), 0);
+					rootItem.pathNodeIdList.add(idListItem.toString());
+					AddToFreshPidTupleList(root.FreshIdMap, idListWithSiblings, "");
+					root.PathListContainer.add(rootItem);
 
-							pathItem.nodes().forEach(nodeItem -> {
-								if (nodeItem != null) {
+					PathsBetweenRootList.add(root);
+				}
 
-									for (org.neo4j.graphdb.Label lbl : nodeItem.getLabels()) {
+				double count = 0;
 
-										if (lbl.name().equals("macromolecule")) {
-											String nodeID = nodeItem.getProperty("id").toString();
-											if (pathNodeIdList.contains(nodeID)) {
-												nodesList.putIfAbsent(nodeID, nodeItem);
+				while (count < limita && count < shortestlength + addition) {
+
+					for (PathsBetweenRoot root : PathsBetweenRootList) {
+
+						root.FreshIdListToIterate.removeAll(root.OldIdListToIterate);
+
+						String query = "match p= (a)--(b)  where a.id in {lists} optional match p2 = (b)-[:resideIn*]-(c) return a.id as pid, [b, c] as blist, [p , p2] as p2List , [b.id, c.id] as bidlist";
+						Map<String, Object> parametersr = new HashMap<String, Object>();
+						parametersr.put("lists", root.FreshIdListToIterate);
+
+						Result result2 = db.execute(query, parametersr);
+						root.OldIdListToIterate.addAll(root.FreshIdListToIterate);
+						root.FreshIdListToIterate.clear();
+
+						while (result2.hasNext()) {
+							Map<String, Object> row = result2.next();
+
+							String pid = (String) row.get("pid");
+
+							// TODO diger proclara uygula
+							root.pathList.addAll((List<Path>) row.get("p2List"));
+							Set<Node> nodebLists = new HashSet<Node>((List<Node>) row.get("blist"));
+
+							for (Node blistitem : nodebLists) {
+
+								if (blistitem != null) {
+
+									blistitem.getLabels().forEach(blistitemlabel -> {
+
+										if (blistitemlabel.name().equals("Port")) {
+
+											String query3 = ifGlyphIsPort(direction);
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+
+												root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+												root.pathList.addAll((List<Path>) row3.get("pathList"));
 											}
-										} else {
-											nodesList.putIfAbsent(nodeItem.getProperty("id").toString(), nodeItem);
+
+										} else if (blistitemlabel.name().equals("process")) {
+
+											String query3 = ifGlyphIsProcess(direction);
+
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+
+												root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+												root.pathList.addAll((List<Path>) row3.get("pathList"));
+
+											}
+										} else if (blistitemlabel.name().equals("omitted_process")) {
+
+											String query3 = ifGlyphIsOmittedProcess(direction);
+
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+												AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+												root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												root.pathList.addAll((List<Path>) row3.get("pathList"));
+											}
+
+										} else if (blistitemlabel.name().equals("uncertain_process")) {
+
+											String query3 = ifGlyphIsUncertainProcess(direction);
+
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+												AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+												root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												root.pathList.addAll((List<Path>) row3.get("pathList"));
+
+											}
+
+										} else if (blistitemlabel.name().equals("association")) {
+
+											String query3 = ifGlyphIsAssociation(direction);
+
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+												AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+												root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												root.pathList.addAll((List<Path>) row3.get("pathList"));
+
+											}
+
+										} else if (blistitemlabel.name().equals("dissociation")) {
+
+											String query3 = ifGlyphIsDissociation(direction);
+
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+												AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+												root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												root.pathList.addAll((List<Path>) row3.get("pathList"));
+											}
+										}
+
+										else {
+										//	root.FreshIdListToIterate.add(blistitem.getProperty("id"));
+										//	List<Object> lst = new ArrayList<Object>();
+										//	lst.add(blistitem.getProperty("id"));
+										//	AddToFreshPidTupleList(root.FreshIdMap, lst, pid);
+											
+											AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row.get("bidlist"), pid);
+											root.FreshIdListToIterate.addAll((List<Object>) row.get("bidlist"));
+											root.pathList.addAll((List<Path>) row.get("p2List"));
+										}
+
+										if (blistitemlabel.name().equals("complex")) {
+
+											String query3 = "match  (c:complex) where c.id = {id}  optional match p1= (c)-[:resideIn*]-(a)   unwind nodes(p1) as p1Node with DISTINCT p1Node, p1  return collect(p1Node.id) as idList,  [p1] as pathList";
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+												root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+												root.pathList.addAll((List<Path>) row3.get("pathList"));
+
+											}
 
 										}
-									}
-
+									});
 								}
 
-							});
+							}
 						}
-					});
+						addPathItemToPathListContainerOfRoot(count, root);
 
-					String queryToPurify = "match (a) where a.id = {Sourceid} with a  optional match (b)  where  b.id in {finalNodes} with a, b optional match  p= (a)-[r*]-(b)  where  all(rv IN  nodes(p)  WHERE rv in {nodes} )  unwind nodes(p) as pNode with DISTINCT pNode, p optional match p2= (pNode)-[:resideIn*]-(ac)  return [p,p2] as pathList";
+						if (shortestlength == 9999 && !Collections.disjoint(root.FreshIdListToIterate, idListTarget)) {
+							shortestlength = count + 1;
+						}
 
-					Map<String, Object> parametersPurify = new HashMap<String, Object>();
-
-					parametersPurify.put("Sourceid", rootItem.nodeId);
-					parametersPurify.put("finalNodes", idListTarget);
-					parametersPurify.put("nodes", nodesList.values());
-
-					Result resultPurify = db.execute(queryToPurify, parametersPurify);
-					Set<Path> pathListForFinal = new HashSet<Path>();
-					while (resultPurify.hasNext()) {
-						Map<String, Object> rowPurify = resultPurify.next();
-						pathListForFinal.addAll((List<Path>) rowPurify.get("pathList"));
 					}
-
-					pathListForFinal.forEach(pathitem -> {
-
-						if (pathitem != null) {
-							if (pathitem.nodes() != null) {
-								pathitem.nodes().forEach(nodeitem -> {
-									if (nodeitem != null)
-										nodesListPurify.add(nodeitem);
-								});
-							}
-
-							if (pathitem.relationships() != null) {
-
-								pathitem.relationships().forEach(relitem -> {
-									if (relitem != null)
-										relsListPurify.add(relitem);
-								});
-							}
-						}
-					});
-
+					count++;
 				}
-			}
-		}
 
-		Traverse1AndExtractRelationsAndNodeForProcesses(db, nodesListPurify, relsListPurify);	
-		retrieveNodesForFinalSBGNMap(db, nodesListPurify, glist, portlist, set);
-		retrieveRelationsForResultSBGNMap(db, relsListPurify, glist, portlist, sbgnMap);
+				for (PathsBetweenRoot rootItem : PathsBetweenRootList) {
 
-		glist.keySet().removeAll(set);
-		for (Iterator<Glyph> iterator = glist.values().iterator(); iterator.hasNext();) {
-			Glyph value = iterator.next();
-			sbgnMap.getGlyph().add(value);
-		}
+					for (PathListITem ptlItem : rootItem.PathListContainer) {
+						//System.out.println(ptlItem.pathNodeIdList);
+						if (idListTarget.contains(ptlItem.endNodeId)) {
 
-		Sbgn sss = new Sbgn();
-		sss.setMap(sbgnMap);
-		String sbgnMl = writeToString(sss);
-		return sbgnMl;
-	}
+							String queryToGetCompoundNodes = "match (a) where a.id in {SourceidList} optional match p1= (a)-[:resideIn*]-(b) unwind nodes(p1) as p1Node   return collect(p1Node.id) as cmpndNodes";
+
+							Map<String, Object> parametersGetCompoundNodes = new HashMap<String, Object>();
+
+							parametersGetCompoundNodes.put("SourceidList", ptlItem.pathNodeIdList);
+							Set<String> pathNodeIdList = new HashSet<String>();
+							Result resultGetCompoundNodes = db.execute(queryToGetCompoundNodes, parametersGetCompoundNodes);
+							Set<Node> NodeListForPurifyQuery = new HashSet<Node>();
+							while (resultGetCompoundNodes.hasNext()) {
+								Map<String, Object> rowGetCompoundNodes = resultGetCompoundNodes.next();
+								pathNodeIdList.addAll((List<String>) rowGetCompoundNodes.get("cmpndNodes"));
+							}
+							pathNodeIdList.addAll(ptlItem.pathNodeIdList);
+							HashMap<String, Node> nodesList = new HashMap<String, Node>();
+							rootItem.pathList.forEach(pathItem -> {
+
+								if (pathItem != null) {
+
+									pathItem.nodes().forEach(nodeItem -> {
+										if (nodeItem != null) {
+
+											for (org.neo4j.graphdb.Label lbl : nodeItem.getLabels()) {
+
+												if (lbl.name().equals("macromolecule") ) {
+													String nodeID = nodeItem.getProperty("id").toString();
+													if (pathNodeIdList.contains(nodeID)) {
+														nodesList.putIfAbsent(nodeID, nodeItem);
+													}
+												} 
+												
+												else if ( lbl.name().equals("complex")) {
+													String nodeID = nodeItem.getProperty("id").toString();
+											
+													
+													if (pathNodeIdList.contains(nodeID)) {
+														nodesList.putIfAbsent(nodeID, nodeItem);
+													}
+												} 
+												else {
+													nodesList.putIfAbsent(nodeItem.getProperty("id").toString(), nodeItem);
+												}
+											}
+
+										}
+
+									});
+								}
+							});
+
+							String queryToPurify = "match (a) where a.id = {Sourceid} with a  optional match (b)  where  b.id in {finalNodes} with a, b optional match  p= (a)-[r*]-(b)  where  all(rv IN  nodes(p)  WHERE rv in {nodes} )  unwind nodes(p) as pNode with DISTINCT pNode, p optional match p2= (pNode)-[:resideIn*]-(ac)  return [p,p2] as pathList";
+
+							Map<String, Object> parametersPurify = new HashMap<String, Object>();
+
+							parametersPurify.put("Sourceid", rootItem.nodeId);
+							parametersPurify.put("finalNodes", idListTarget);
+							parametersPurify.put("nodes", nodesList.values());
+
+							Result resultPurify = db.execute(queryToPurify, parametersPurify);
+							Set<Path> pathListForFinal = new HashSet<Path>();
+							while (resultPurify.hasNext()) {
+								Map<String, Object> rowPurify = resultPurify.next();
+								pathListForFinal.addAll((List<Path>) rowPurify.get("pathList"));
+							}
+
+							pathListForFinal.forEach(pathitem -> {
+
+								if (pathitem != null) {
+									if (pathitem.nodes() != null) {
+										pathitem.nodes().forEach(nodeitem -> {
+											if (nodeitem != null)
+												nodesListPurify.add(nodeitem);
+										});
+									}
+
+									if (pathitem.relationships() != null) {
+
+										pathitem.relationships().forEach(relitem -> {
+											if (relitem != null)
+												relsListPurify.add(relitem);
+										});
+									}
+								}
+							});
+
+						}
+					}
+				}
+
+				Traverse1AndExtractRelationsAndNodeForProcesses(db, nodesListPurify, relsListPurify);	
+				retrieveNodesForFinalSBGNMap(db, nodesListPurify, glist, portlist, set);
+				retrieveRelationsForResultSBGNMap(db, relsListPurify, glist, portlist, sbgnMap);
+
+				glist.keySet().removeAll(set);
+				for (Iterator<Glyph> iterator = glist.values().iterator(); iterator.hasNext();) {
+					Glyph value = iterator.next();
+					sbgnMap.getGlyph().add(value);
+				}
+
+				Sbgn sss = new Sbgn();
+				sss.setMap(sbgnMap);
+				String sbgnMl = writeToString(sss);
+				return sbgnMl;}
 
 	public String GoIfunc(String genesList, double limita, double direction) throws JAXBException {
 
@@ -1981,8 +1999,10 @@ public class App {
 			glist.putIfAbsent(glyph.getId(), glyph);
 		}
 
-		Result result2 = db.execute(
-				"MATCH (a)-[r]->(b) where r.startX is not null return a.id as sid,b.id as tid, r.startX as xx,r.startY as yy, r.endX as ex, r.endY as ey, r.aid as id, type(r) as class");
+		String query = "MATCH (a)-[r]->(b) where r.startX is not null return a.id as sid,b.id as tid, r.startX as xx,r.startY as yy, r.endX as ex, r.endY as ey, r.aid as id, type(r) as class";
+	
+		Result result2 = db.execute(query);
+
 		while (result2.hasNext()) {
 			Map<String, Object> row2 = result2.next();
 
@@ -1995,6 +2015,7 @@ public class App {
 			float endY = (float) row2.get("ey");
 			String aid = (String) row2.get("id");
 			String clazz = (String) row2.get("class");
+			clazz = clazz.replaceAll("_", " ");
 			End end = new End();
 			end.setX((float) endX);
 			end.setY((float) endY);
@@ -2014,7 +2035,6 @@ public class App {
 			} else {
 				arc.setTarget(portlist.get(row2.get("tid")));
 			}
-
 			sbgnMap.getArc().add(arc);
 		}
 
@@ -2035,7 +2055,7 @@ public class App {
 	private void retrieveNodesForFinalSBGNMap(GraphDatabaseService graphDb, Collection<Node> collection,
 			HashMap<String, Glyph> glist, HashMap<String, Port> portlist, Set<String> set) {
 		Set<String> comprefList = new HashSet<String>();
-		String queryF = "Match (g)  where   not g:Port and  g in {nodes} optional match (g)<-[:resideIn]-(gc) optional match (g)-[:hasPort]->(p:Port) optional match (g)-[:resideIn]->(prnt) optional match (sblg) - [:resideIn] -> (prnt) where sblg <> g return g, collect(gc) as childGlyph, collect(p) as ports, collect(distinct prnt) as prntList, collect(sblg) as sblgList, count(prnt) as  prntcount  order by prntcount desc";
+		String queryF = "Match (g) where not g:Port and  g in {nodes} optional match (g)<-[:resideIn]-(gc) optional match (g)-[:hasPort]->(p:Port) optional match (g)-[:resideIn]->(prnt) optional match (sblg) - [:resideIn] -> (prnt) where sblg <> g return g, collect(gc) as childGlyph, collect(p) as ports, collect(distinct prnt) as prntList, collect(sblg) as sblgList, count(prnt) as  prntcount  order by prntcount desc";
 
 		Map<String, Object> parametersF = new HashMap<String, Object>();
 		parametersF.put("nodes", collection);
@@ -2339,6 +2359,7 @@ public class App {
 			float endY = (float) row2.get("ey");
 			String aid = (String) row2.get("id");
 			String clazz = (String) row2.get("class");
+			clazz = clazz.replaceAll("_", " ");
 			End end = new End();
 			end.setX((float) endX);
 			end.setY((float) endY);
@@ -2445,27 +2466,26 @@ public class App {
 	}
 
 	private void addPathItemToPathListContainerOfRoot(double count, PathsBetweenRoot root) {
-		for (FreshIdItem freshid : root.FreshIdMap.values()) {
-			double compkey = count + 1;
-			if (freshid != null) {
-
-				PathListITem pitem = root.PathListContainer.get(freshid.pid.toString() + ":" + count);
-
-				if (pitem != null && !freshid.pid.equals("")) {
-
-					if (pitem.endNodeDepth + 1 == count + 1 && pitem.pathNodeIdList.size() == count + 1) {
-						PathListITem fitem = new PathListITem(freshid.sid.toString(), compkey);
-						fitem.pathNodeIdList.addAll(pitem.pathNodeIdList);
-						fitem.pathNodeIdList.add(freshid.sid.toString());
-
-						root.PathListContainer.putIfAbsent(freshid.sid.toString() + ":" + compkey, fitem);
-
-					}
+		
+		for(FreshIdItem freshid : 	root.FreshIdMap.values()){
+				double compkey = count +1;
+				if(freshid !=null){					
+					List<PathListITem> pitemList = root.PathListContainer.stream().filter( p -> p.key.equals( freshid.pid.toString()+":"+count)).collect(Collectors.toList());
+			
+							if(pitemList != null && !freshid.pid.equals("") ){							
+								for (PathListITem pitem : pitemList){										
+									if(pitem.endNodeDepth +1 == count +1 && pitem.pathNodeIdList.size()== count +1 ){
+										PathListITem fitem  = new PathListITem(freshid.sid.toString()+":"+compkey,freshid.sid.toString(),compkey);											
+									fitem.pathNodeIdList.addAll(pitem.pathNodeIdList);
+									fitem.pathNodeIdList.add(freshid.sid.toString());
+									root.PathListContainer.add(fitem);
+								}
+							}
+						}
 				}
-			}
 		}
 	}
-
+	
 	private void AddToFreshPidTupleList(HashMap<String, FreshIdItem> freshPidTupleList, Collection<Object> list,
 			Object pid) {
 
