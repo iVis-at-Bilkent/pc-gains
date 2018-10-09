@@ -219,9 +219,9 @@ public class App {
 
 		ArrayList<StreamObject> streamObjList = new ArrayList<StreamObject>();
 
-		String queryM = "match (a) where a.label in {lists}  return  collect(a.id) as idlist";
+		String queryM = "match (a) where   toLower(a.label) in {lists}  return  collect(a.id) as idlist";
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.split(" "));
+		parameters.put("lists", genesList.toLowerCase().split(" "));
 
 		Result result = db.execute(queryM, parameters);
 
@@ -439,6 +439,7 @@ public class App {
 
 		Set<Node> finalNodes = new HashSet<Node>();
 
+		if(streamObjList.size()>0)		
 		finalNodes.addAll(streamObjList.get(0).nodesList.values());
 
 		streamObjList.forEach(streamItem -> {
@@ -455,6 +456,8 @@ public class App {
 			String hg = "[id='" + ihd + "'],";
 			strforhighlight += hg;
 		}
+		
+		if(strforhighlight.length()>0)
 		strforhighlight = strforhighlight.substring(0, strforhighlight.length() - 1);
 
 		return strforhighlight;
@@ -487,10 +490,10 @@ public class App {
 		Set<Relationship> allRelations = new HashSet<Relationship>();
 
 		Set<Node> nodeList = new HashSet<Node>();
-		String queryM = "match (a) where a.label in {lists}  return  collect(a.id) as idlist";
+		String queryM = "match (a) where toLower(a.label) in {lists}  return  collect(a.id) as idlist";
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.split(" "));
+		parameters.put("lists", genesList.toLowerCase().split(" "));
 
 		Result result = db.execute(queryM, parameters);
 
@@ -710,6 +713,7 @@ public class App {
 
 		Set<Node> finalNodes = new HashSet<Node>();
 
+		if(streamObjList.size()>0)
 		finalNodes.addAll(streamObjList.get(0).nodesList.values());
 
 		streamObjList.forEach(streamItem -> {
@@ -764,10 +768,10 @@ public class App {
 
 		Set<Node> nodeList = new HashSet<Node>();
 
-		String queryM = "match (a) where a.label in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
+		String queryM = "match (a) where toLower(a.label) in {lists} optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.split(" "));
+		parameters.put("lists", genesList.toLowerCase().split(" "));
 
 		Result result = db.execute(queryM, parameters);
 
@@ -987,10 +991,10 @@ public class App {
 				Set<Node> nodesListPurify = new HashSet<Node>();
 				Set<Relationship> relsListPurify = new HashSet<Relationship>();
 
-				String queryT = "match (a) where a.label in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
+				String queryT = "match (a) where toLower(a.label) in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
 
 				Map<String, Object> parametersT = new HashMap<String, Object>();
-				parametersT.put("lists", genesListTarget.split(" "));
+				parametersT.put("lists", genesListTarget.toLowerCase().split(" "));
 
 				Result resultT = db.execute(queryT, parametersT);
 
@@ -1346,10 +1350,10 @@ public class App {
 
 		Set<Node> nodeList = new HashSet<Node>();
 
-		String queryM = "match (a) where a.label in {lists}  return  collect(a.id) as idlist";
+		String queryM = "match (a) where toLower(a.label) in {lists} return  collect(a.id) as idlist";
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.split(" "));
+		parameters.put("lists", genesList.toLowerCase().split(" "));
 
 		Result result = db.execute(queryM, parameters);
 
