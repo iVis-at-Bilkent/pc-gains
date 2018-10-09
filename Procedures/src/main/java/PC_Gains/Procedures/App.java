@@ -1005,10 +1005,10 @@ public class App {
 					idListTarget.addAll((List<Object>) row.get("cidlist"));
 				}
 
-				String queryM = "match (a) where a.label in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
+				String queryM = "match (a) where toLower(a.label) in {lists}   optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
 
 				Map<String, Object> parameters = new HashMap<String, Object>();
-				parameters.put("lists", genesList.split(" "));
+				parameters.put("lists", genesList.toLowerCase().split(" "));
 
 				Result result = db.execute(queryM, parameters);
 
