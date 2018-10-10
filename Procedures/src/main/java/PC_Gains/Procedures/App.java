@@ -2200,7 +2200,16 @@ public class App {
 
 				glist.putIfAbsent(childglyph.getId(), childglyph);
 				set.add(childglyph.getId());
-				glyph.getGlyph().add(childglyph);
+				String cls =item.getLabels().iterator().next().toString();
+				if(cls.equals("state_variable") || cls.equals("unit_of_information")){
+					
+					if(	!glyph.getGlyph().stream().filter( z -> z.getId().equals(item.getProperty("id")) ).findAny().isPresent()){
+						glyph.getGlyph().add(childglyph);			
+						}		
+				}				
+				else{
+					glyph.getGlyph().add(childglyph);				
+				}
 
 			});
 
@@ -2252,7 +2261,16 @@ public class App {
 					statep.setVariable(stpVar);
 					glyphParent.setState(statep);
 
-					glyphParent.getGlyph().add(glyph);
+					String cls =parent.getLabels().iterator().next().toString();
+					if(cls.equals("state_variable") || cls.equals("unit_of_information")){
+						if(	!glyphParent.getGlyph().stream().filter( z -> z.getId().equals(parent.getProperty("id"))).findAny().isPresent()){
+							glyphParent.getGlyph().add(glyph);
+						}		
+					}				
+					else{
+						glyphParent.getGlyph().add(glyph);
+					
+					}
 
 					siblings.forEach(item -> {
 
@@ -2302,7 +2320,15 @@ public class App {
 
 						glist.putIfAbsent(childglyph.getId(), childglyph);
 						set.add(childglyph.getId());
-						glyphParent.getGlyph().add(childglyph);
+						String cls2 =item.getLabels().iterator().next().toString();
+						if(cls2.equals("state_variable") || cls2.equals("unit_of_information")){
+							if(	!glyphParent.getGlyph().stream().filter( z -> z.getId().equals(item.getProperty("id")) ).findAny().isPresent()){
+								glyphParent.getGlyph().add(childglyph);	
+								}		
+						}				
+						else{
+							glyphParent.getGlyph().add(childglyph);
+						}						
 
 					});
 				}
