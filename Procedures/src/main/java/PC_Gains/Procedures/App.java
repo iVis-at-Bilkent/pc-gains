@@ -1758,9 +1758,12 @@ public class App {
 		float h = g.getBbox().getH();
 
 		String stateVal = "";
+		String stateVariable = "";
 		if (g.getState() != null) {
 			if (g.getState().getValue() != null)
 				stateVal = g.getState().getValue();
+			if (g.getState().getVariable() != null)
+				stateVariable = g.getState().getVariable();
 
 		}
 
@@ -1768,7 +1771,7 @@ public class App {
 		if (g.getCompartmentRef() != null)
 			compRef = ((Glyph) g.getCompartmentRef()).getId();
 		String query = "MERGE (a:" + g.getClazz().replaceAll(" ", "_")
-				+ "{label: {label} , id: {id}, x: {x}, y: {y}, w: {w},  h: {h}, compRef: {compRef}, stateVal: {stateVal} })";
+				+ "{label: {label} , id: {id}, x: {x}, y: {y}, w: {w},  h: {h}, compRef: {compRef}, stateVal: {stateVal}, stateVariable: {stateVariable} })";
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters.put("label", label);
 		parameters.put("id", gid);
@@ -1778,6 +1781,7 @@ public class App {
 		parameters.put("h", h);
 		parameters.put("compRef", compRef);
 		parameters.put("stateVal", stateVal);
+		parameters.put("stateVariable", stateVariable);
 
 		db.execute(query, parameters);
 
@@ -1934,7 +1938,9 @@ public class App {
 
 			State state = new State();
 			String st = (String) ((Node) row.get("g")).getProperty("stateVal");
+			String stVar = (String) ((Node) row.get("g")).getProperty("stateVariable");
 			state.setValue(st);
+			state.setVariable(stVar);
 			glyph.setState(state);
 			ports.forEach(item -> {
 				Port port = new Port();
@@ -1983,6 +1989,8 @@ public class App {
 
 				State cstate = new State();
 				String cst = (String) item.getProperty("stateVal");
+				String cstVar = (String) item.getProperty("stateVariable");
+				cstate.setVariable(cstVar);
 				cstate.setValue(cst);
 				childglyph.setState(cstate);
 
@@ -2112,7 +2120,9 @@ public class App {
 
 			State state = new State();
 			String st = (String) ((Node) row.get("g")).getProperty("stateVal");
+			String stVar = (String) ((Node) row.get("g")).getProperty("stateVariable");
 			state.setValue(st);
+			state.setVariable(stVar);
 			glyph.setState(state);
 
 			// ports
@@ -2164,7 +2174,9 @@ public class App {
 
 				State cstate = new State();
 				String cst = (String) item.getProperty("stateVal");
+				String cstVar = (String) item.getProperty("stateVariable");
 				cstate.setValue(cst);
+				cstate.setVariable(cstVar);
 				childglyph.setState(cstate);
 
 				if (!((String) item.getProperty("compRef")).equals("notexist")) {
@@ -2224,7 +2236,9 @@ public class App {
 
 					State statep = new State();
 					String stp = (String) parent.getProperty("stateVal");
+					String stpVar = (String) parent.getProperty("stateVariable");
 					statep.setValue(stp);
+					statep.setVariable(stpVar);
 					glyphParent.setState(statep);
 
 					glyphParent.getGlyph().add(glyph);
@@ -2262,7 +2276,9 @@ public class App {
 
 						State cstate = new State();
 						String cst = (String) item.getProperty("stateVal");
+						String cstVar = (String) item.getProperty("stateVariable");
 						cstate.setValue(cst);
+						cstate.setVariable(cstVar);
 						childglyph.setState(cstate);
 
 						if (!((String) item.getProperty("compRef")).equals("notexist")) {
@@ -2331,7 +2347,9 @@ public class App {
 
 			State state = new State();
 			String st = (String) ((Node) row.get("g")).getProperty("stateVal");
+			String stVar = (String) ((Node) row.get("g")).getProperty("stateVariable");
 			state.setValue(st);
+			state.setVariable(stVar);
 			glyph.setState(state);
 			// ports
 
