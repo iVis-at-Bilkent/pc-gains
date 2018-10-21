@@ -757,8 +757,14 @@ public class App {
 		}
 		Sbgn sss = new Sbgn();
 		sss.setMap(sbgnMap);
-		String sbgnMl = writeToString(sss);
-		return sbgnMl;
+		
+		if(sbgnMap.getGlyph().size()>0){
+			String sbgnMl = writeToString(sss);			
+			return sbgnMl;
+		}
+		else{			
+			return null;
+		}
 	}
 
 	private String neighborsBFS(String genesList, double limita) throws JAXBException {
@@ -982,8 +988,14 @@ public class App {
 		}
 		Sbgn sss = new Sbgn();
 		sss.setMap(sbgnMap);
-		String sbgnMl = writeToString(sss);
-		return sbgnMl;
+		
+		if(sbgnMap.getGlyph().size()>0){
+			String sbgnMl = writeToString(sss);			
+			return sbgnMl;
+		}
+		else{			
+			return null;
+		}
 	}
 
 	private String PathsBetweenFunc(String genesList, String genesListTarget, double limita, double addition)
@@ -1340,10 +1352,18 @@ public class App {
 			sbgnMap.getGlyph().add(value);
 		}
 
+		
+		
 		Sbgn sss = new Sbgn();
 		sss.setMap(sbgnMap);
-		String sbgnMl = writeToString(sss);
-		return sbgnMl;
+		
+		if(sbgnMap.getGlyph().size()>0){
+			String sbgnMl = writeToString(sss);			
+			return sbgnMl;
+		}
+		else{			
+			return null;
+		}
 	}
 
 	public String GoIfunc(String genesList, double limita, double direction) throws JAXBException {
@@ -1709,10 +1729,17 @@ public class App {
 			Glyph value = iterator.next();
 			sbgnMap.getGlyph().add(value);
 		}
+		
 		Sbgn sss = new Sbgn();
 		sss.setMap(sbgnMap);
-		String sbgnMl = writeToString(sss);
-		return sbgnMl;
+		if(sbgnMap.getGlyph().size()>0){
+			String sbgnMl = writeToString(sss);			
+			return sbgnMl;
+		}
+		else{			
+			return null;
+		}
+		
 
 	}
 
