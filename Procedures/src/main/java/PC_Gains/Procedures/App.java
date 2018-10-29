@@ -178,6 +178,16 @@ public class App {
 		return Stream.of(new Output(neighborsBFS(geneList, limit)));
 	}
 
+	@Procedure(name = "ReturnIdSForHighlight", mode = Mode.WRITE)
+	public Stream<Output> ReturnIdSForHighlight(@Name("genesList") String geneList)
+			throws JAXBException {
+		if (geneList == null) {
+			return null;
+		}
+
+		return Stream.of(new Output(HighlightSeed(geneList)));
+	}
+	
 	@Procedure(name = "StreamHighlight", mode = Mode.WRITE)
 	public Stream<Output> StreamHighlight(@Name("genesList") String geneList, @Name("limit") double limit,
 			@Name("dir") double dir) throws JAXBException {
@@ -767,6 +777,58 @@ public class App {
 		}
 	}
 
+	
+private String HighlightSeed(String genesList) throws JAXBException {
+		
+		Set<Object> idList = new HashSet<Object>();	
+
+		HashMap<String, Glyph> glist = new HashMap<String, Glyph>();
+		HashMap<String, Port> portlist = new HashMap<String, Port>();
+		org.sbgn.bindings.Map sbgnMap = new org.sbgn.bindings.Map();
+		Set<String> set = new HashSet<>();
+
+		Set<Node> nodesListPurify = new HashSet<Node>();
+		Set<Relationship> relsListPurify = new HashSet<Relationship>();
+
+		String queryT = "match (a) where a.label in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
+
+		Map<String, Object> parametersT = new HashMap<String, Object>();
+		parametersT.put("lists", genesList.split(" "));
+
+		Result resultT = db.execute(queryT, parametersT);
+
+		
+		while (resultT.hasNext()) {
+			Map<String, Object> row = resultT.next();
+			idList.addAll((List<Object>) row.get("idlist"));			
+		}
+		
+		
+		String strforhighlight = "" ;
+		
+		
+		Iterator<Object> it = idList.iterator();
+		
+		
+		while(it.hasNext()){
+			String ihd = 	it.next().toString();
+			
+			String hg = "[id='"+ihd +"'],";
+			strforhighlight +=hg;
+			
+			System.out.println("strfr " + strforhighlight);
+		
+		}
+
+
+		if(strforhighlight.length()>0)
+				strforhighlight = strforhighlight.substring(0, strforhighlight.length() - 1);
+
+		return strforhighlight;
+				
+
+}
+	
 	private String neighborsBFS(String genesList, double limita) throws JAXBException {
 
 		HashMap<String, Node> nodesList = new HashMap<String, Node>();
