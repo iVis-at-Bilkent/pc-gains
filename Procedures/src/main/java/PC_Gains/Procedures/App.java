@@ -238,7 +238,7 @@ public class App {
 
 		String queryM = "match (a) where   toLower(a.label) in {lists}  return  collect(a.id) as idlist";
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.toLowerCase().split(" "));
+		parameters.put("lists", SplitArrayByCommaAndTrim( genesList.toLowerCase()));
 
 		Result result = db.execute(queryM, parameters);
 
@@ -492,6 +492,19 @@ public class App {
 		}
 		return query;
 	}
+	
+	private String [] SplitArrayByCommaAndTrim( String string){
+		String[] ob =  string.split(",");
+		
+		String ret[] = new String[ob.length]; 
+		int c=0;
+		for(String obitem :  ob){			
+			ret[c]= obitem.toString().trim();			
+			c++;			
+		}
+		
+		return ret;
+	} 
 
 	private String stream2(String genesList, double limita, double direction) throws JAXBException {
 
@@ -510,7 +523,7 @@ public class App {
 		String queryM = "match (a) where toLower(a.label) in {lists}  return  collect(a.id) as idlist";
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.toLowerCase().split(" "));
+		parameters.put("lists", SplitArrayByCommaAndTrim( genesList.toLowerCase()));
 
 		Result result = db.execute(queryM, parameters);
 
@@ -790,10 +803,10 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		Set<Node> nodesListPurify = new HashSet<Node>();
 		Set<Relationship> relsListPurify = new HashSet<Relationship>();
 
-		String queryT = "match (a) where a.label in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
+		String queryT = "match (a) where toLower(a.label) in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
 
 		Map<String, Object> parametersT = new HashMap<String, Object>();
-		parametersT.put("lists", genesList.split(" "));
+		parametersT.put("lists",SplitArrayByCommaAndTrim( genesList.toLowerCase()));
 
 		Result resultT = db.execute(queryT, parametersT);
 
@@ -846,7 +859,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		String queryM = "match (a) where toLower(a.label) in {lists} optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.toLowerCase().split(" "));
+		parameters.put("lists", SplitArrayByCommaAndTrim( genesList.toLowerCase()));
 
 		Result result = db.execute(queryM, parameters);
 
@@ -1075,7 +1088,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		String queryT = "match (a) where toLower(a.label) in {lists}  optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
 
 		Map<String, Object> parametersT = new HashMap<String, Object>();
-		parametersT.put("lists", genesListTarget.toLowerCase().split(" "));
+		parametersT.put("lists", SplitArrayByCommaAndTrim( genesListTarget.toLowerCase()));
 
 		Result resultT = db.execute(queryT, parametersT);
 
@@ -1089,7 +1102,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		String queryM = "match (a) where toLower(a.label) in {lists}   optional match (a)-[:resideIn*]-(c)   return  collect(a.id) as idlist, collect(c.id) as cidlist";
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.toLowerCase().split(" "));
+		parameters.put("lists", SplitArrayByCommaAndTrim( genesList.toLowerCase()));
 
 		Result result = db.execute(queryM, parameters);
 
@@ -1442,7 +1455,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		String queryM = "match (a) where toLower(a.label) in {lists} return  collect(a) as nodeItemList";
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		parameters.put("lists", genesList.toLowerCase().split(" "));
+		parameters.put("lists", SplitArrayByCommaAndTrim( genesList.toLowerCase()));
 
 		Result result = db.execute(queryM, parameters);
 
