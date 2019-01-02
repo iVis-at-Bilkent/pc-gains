@@ -403,6 +403,60 @@ public class App {
 									}
 								}
 
+							/*	else if (blistitemlabel.name().equals("or")) {
+
+									String query3 = ifGlyphIsOr(direction);
+									Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+									parameters3.put("id", blistitem.getProperty("id"));
+
+									Result result3 = db.execute(query3, parameters3);
+
+									while (result3.hasNext()) {
+										Map<String, Object> row3 = result3.next();
+
+										FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+										strObj.pathList.addAll((List<Path>) row3.get("pathList"));
+									}
+
+								}
+							
+							 else if (blistitemlabel.name().equals("and")) {
+
+									String query3 = ifGlyphIsAnd(direction);
+									Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+									parameters3.put("id", blistitem.getProperty("id"));
+
+									Result result3 = db.execute(query3, parameters3);
+
+									while (result3.hasNext()) {
+										Map<String, Object> row3 = result3.next();
+
+										FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+										strObj.pathList.addAll((List<Path>) row3.get("pathList"));
+									}
+
+								}
+
+							 else if (blistitemlabel.name().equals("not")) {
+
+									String query3 = ifGlyphIsNot(direction);
+									Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+									parameters3.put("id", blistitem.getProperty("id"));
+
+									Result result3 = db.execute(query3, parameters3);
+
+									while (result3.hasNext()) {
+										Map<String, Object> row3 = result3.next();
+
+										FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+										strObj.pathList.addAll((List<Path>) row3.get("pathList"));
+									}
+
+								}
+								*/
 								else {
 									FreshIdListToIterate.add(blistitem.getProperty("id"));
 									strObj.pathList.add((Path) row.get("p"));
@@ -577,7 +631,7 @@ public class App {
 
 							blistitem.getLabels().forEach(blistitemlabel -> {
 
-								if (blistitemlabel.name().equals("Port")) {
+							/*	if (blistitemlabel.name().equals("Port")) {
 
 									String query3 = ifGlyphIsPort(direction);
 
@@ -596,7 +650,8 @@ public class App {
 
 									}
 
-								} else if (blistitemlabel.name().equals("process")) {
+								} else */
+								if (blistitemlabel.name().equals("process")) {
 
 									String query3 = ifGlyphIsProcess(direction);
 
@@ -682,7 +737,59 @@ public class App {
 									}
 
 								}
+								 /*else if (blistitemlabel.name().equals("or")) {
 
+										String query3 = ifGlyphIsOr(direction);
+										Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+										parameters3.put("id", blistitem.getProperty("id"));
+
+										Result result3 = db.execute(query3, parameters3);
+
+										while (result3.hasNext()) {
+											Map<String, Object> row3 = result3.next();
+
+											FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+											strObj.pathList.addAll((List<Path>) row3.get("pathList"));
+										}
+
+									}
+								
+								 else if (blistitemlabel.name().equals("and")) {
+
+										String query3 = ifGlyphIsAnd(direction);
+										Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+										parameters3.put("id", blistitem.getProperty("id"));
+
+										Result result3 = db.execute(query3, parameters3);
+
+										while (result3.hasNext()) {
+											Map<String, Object> row3 = result3.next();
+
+											FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+											strObj.pathList.addAll((List<Path>) row3.get("pathList"));
+										}
+
+									}
+
+								 else if (blistitemlabel.name().equals("not")) {
+
+										String query3 = ifGlyphIsNot(direction);
+										Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+										parameters3.put("id", blistitem.getProperty("id"));
+
+										Result result3 = db.execute(query3, parameters3);
+
+										while (result3.hasNext()) {
+											Map<String, Object> row3 = result3.next();
+
+											FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+											strObj.pathList.addAll((List<Path>) row3.get("pathList"));
+										}
+
+									}*/
 								else {
 									FreshIdListToIterate.add(blistitem.getProperty("id"));
 									strObj.pathList.add((Path) row.get("p"));
@@ -752,8 +859,12 @@ public class App {
 
 		});
 
-		String queryToPurify = "match (a) where a.id in {SourceidList} with a  optional match (b)  where  b in {finalNodes} with a, b optional match  p= (a)-[r*]-(b) where  all(rv IN  relationships(p)  WHERE rv in {relas})  return relationships(p) as rels, nodes(p) as nodes";
+		int maxLength = (int) (limita+1) *2 ;
+		String maxLengthStr = "*0.."+  maxLength;
+		String queryToPurify = 	"match  p= (a)-["+maxLengthStr+"]-(b) where a.id in {SourceidList} and  b in {finalNodes} and  all(rv IN  relationships(p)  WHERE rv in {relas})  return relationships(p) as rels, nodes(p) as nodes";
+						
 		Map<String, Object> parametersPurify = new HashMap<String, Object>();
+		
 		parametersPurify.put("SourceidList", idList);
 		parametersPurify.put("finalNodes", finalNodes);
 		parametersPurify.put("relas", allRelations);
@@ -829,7 +940,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 			String hg = "[id='"+ihd +"'],";
 			strforhighlight +=hg;
 			
-			System.out.println("strfr " + strforhighlight);
+			
 		
 		}
 
@@ -899,9 +1010,13 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 							blistitem.getLabels().forEach(blistitemlabel -> {
 
-								if (blistitemlabel.name().equals("Port")) {
+								/*if (blistitemlabel.name().equals("Port")) {
 
-									String query3 = "match (po:Port) where po.id = {id}  optional match p1= (po)--(pr)--(:Port)--(a) where  pr:dissociation or  pr:process or pr:association or pr:omitted_process or pr:uncertain_process optional match p4=(a)-[:resideIn*]-(m) optional match p2 = (po)--(:process)--(b) where not b:Port optional match p7= (po)--(:omitted_process)--(f) where not f:Port optional match p8= (po)--(:uncertain_process)--(g) where not g:Port optional match p5=(b)-[:resideIn*]-(n) optional match p3 = (po)--(c) where not c:process and not c:omitted_process and not c:uncertain_process and not c:association  and not c:dissociation optional match p6=(c)-[:resideIn*]-(v) return [a.id,b.id, c.id, f.id, g.id, m.id, n.id,v.id] as idList, [p1,p2,p3,p4,p5,p6,p7,p8] as pathList";
+									//String query3 = "match (po:Port) where po.id = {id}  optional match p1= (po)--(pr)--(:Port)--(a) where  pr:dissociation or  pr:process or pr:association or pr:omitted_process or pr:uncertain_process optional match p4=(a)-[:resideIn*]-(m) optional match p2 = (po)--(:process)--(b) where not b:Port optional match p7= (po)--(:omitted_process)--(f) where not f:Port optional match p8= (po)--(:uncertain_process)--(g) where not g:Port optional match p5=(b)-[:resideIn*]-(n) optional match p3 = (po)--(c) where not c:process and not c:omitted_process and not c:uncertain_process and not c:association  and not c:dissociation optional match p6=(c)-[:resideIn*]-(v) return [a.id,b.id, c.id, f.id, g.id, m.id, n.id,v.id] as idList, [p1,p2,p3,p4,p5,p6,p7,p8] as pathList";
+									
+								//	String query3 = "match (po:Port) where po.id = {id} optional match p1= (po)--(pr)--(:Port)--(a) where pr:or or pr:not or pr:and or  pr:dissociation or pr:process or pr:association or pr:omitted_process or pr:uncertain_process optional match p4=(a)-[:resideIn*]-(m) optional match p2 = (po)--(:process)--(b) where not b:Port optional match p7= (po)--(:omitted_process)--(f) where not f:Port optional match p8= (po)--(:uncertain_process)--(g) where not g:Port optional match p9 = (po)--(:and)--(r) where not r:Port optional match p10= (po)--(:or)--(s) where not s:Port optional match p11= (po)--(:not)--(t) where not t:Port optional match p12=(x)-[:resideIn*]-(f) optional match p13=(y)-[:resideIn*]-(g) optional match p14=(z)-[:resideIn*]-(r) optional match p15=(v)-[:resideIn*]-(s) optional match p16=(q)-[:resideIn*]-(t) optional match p5=(b)-[:resideIn*]-(n) optional match p3 = (po)--(c) where not c:or and not c:and and not c:not and not c:process and not c:omitted_process and not c:uncertain_process and not c:association  and not c:dissociation optional match p6=(c)-[:resideIn*]-(k) return [a.id, b.id, c.id, f.id, g.id, m.id, n.id, k.id, r.id, s.id, t.id,x.id,y.id,z.id, v.id, q.id ] as idList, [p1,p2,p3,p4,p5,p6,p7,p8, p9,p10,p11,p12,p13,p14,p15,p16] as pathList";
+									String query3 = "match (po:Port) where po.id = {id} optional match p1= (po)--(pr)--(:Port)--(a) where pr:or or pr:not or pr:and or  pr:dissociation or pr:process or pr:association or pr:omitted_process or pr:uncertain_process optional match p4=(a)-[:resideIn*]-(m) optional match p2 = (po)--(:process)--(b) where not b:Port optional match p7= (po)--(:omitted_process)--(f) where not f:Port optional match p8= (po)--(:uncertain_process)--(g) where not g:Port optional match p9 = (po)--(:and)--(r) where not r:Port optional match p10= (po)--(:or)--(s) where not s:Port optional match p11= (po)--(:not)--(t) where not t:Port optional match p12=(x)-[:resideIn*]-(f) optional match p13=(y)-[:resideIn*]-(g) optional match p14=(z)-[:resideIn*]-(r) optional match p15=(v)-[:resideIn*]-(s) optional match p16=(q)-[:resideIn*]-(t) optional match p5=(b)-[:resideIn*]-(n) optional match p3 = (po)--(c) where not c:or and not c:and and not c:not and not c:process and not c:omitted_process and not c:uncertain_process and not c:association  and not c:dissociation optional match p6=(c)-[:resideIn*]-(k) optional match p17 = (po)--()--(:Port)-[:logic_arc]-()--(ee)  optional match p18=(ee)-[:resideIn*]-(vv)   return [a.id, b.id, c.id, f.id, g.id, m.id, n.id, k.id, r.id, s.id, t.id,x.id,y.id,z.id, v.id, q.id, ee.id, vv.id ] as idList, [p1,p2,p3,p4,p5,p6,p7,p8, p9,p10,p11,p12,p13,p14,p15,p16,p17,p18] as pathList";
+										
 									Map<String, Object> parameters3 = new HashMap<String, Object>();
 
 									parameters3.put("id", blistitem.getProperty("id"));
@@ -910,15 +1025,14 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 									while (result3.hasNext()) {
 										Map<String, Object> row3 = result3.next();
-
 										FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
 										pathList.addAll((List<Path>) row3.get("pathList"));
-
 									}
 
-								} else if (blistitemlabel.name().equals("process")) {
+								} */ if (blistitemlabel.name().equals("process")) {
 
-									String query3 = "match (p:process) where p.id = {id} optional match p1= (p)--(:Port)--(a) optional match p3=(a)-[:resideIn*]-(m) optional match p2=(p)--(b) where not b:Port optional match p4=(b)-[:resideIn*]-(n) return [a.id, b.id, m.id, n.id] as idList,  [p1,p2,p3,p4] as pathList";
+									String query3 = "match (p:process) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+									
 									Map<String, Object> parameters3 = new HashMap<String, Object>();
 
 									parameters3.put("id", blistitem.getProperty("id"));
@@ -935,7 +1049,9 @@ private String HighlightSeed(String genesList) throws JAXBException {
 									}
 								} else if (blistitemlabel.name().equals("omitted_process")) {
 
-									String query3 = "match (p:omitted_process) where p.id = {id} optional match p1= (p)--(:Port)--(a) optional match p3=(a)-[:resideIn*]-(m) optional match p2=(p)--(b) where not b:Port optional match p4=(b)-[:resideIn*]-(n) return [a.id, b.id, m.id, n.id] as idList,  [p1,p2,p3,p4] as pathList";
+									//String query3 = "match (p:omitted_process) where p.id = {id} optional match p1= (p)--(:Port)--(a) optional match p3=(a)-[:resideIn*]-(m) optional match p2=(p)--(b) where not b:Port optional match p4=(b)-[:resideIn*]-(n) return [a.id, b.id, m.id, n.id] as idList,  [p1,p2,p3,p4] as pathList";
+									String query3 = "match (p:omitted_process) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+									
 									Map<String, Object> parameters3 = new HashMap<String, Object>();
 
 									parameters3.put("id", blistitem.getProperty("id"));
@@ -951,7 +1067,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 								} else if (blistitemlabel.name().equals("uncertain_process")) {
 
-									String query3 = "match (p:uncertain_process) where p.id = {id} optional match p1= (p)--(:Port)--(a) optional match p3=(a)-[:resideIn*]-(m) optional match p2=(p)--(b) where not b:Port optional match p4=(b)-[:resideIn*]-(n) return [a.id, b.id, m.id, n.id] as idList,  [p1,p2,p3,p4] as pathList";
+									String query3 = "match (p:uncertain_process) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
 									Map<String, Object> parameters3 = new HashMap<String, Object>();
 									parameters3.put("id", blistitem.getProperty("id"));
 
@@ -967,7 +1083,10 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 								} else if (blistitemlabel.name().equals("association")) {
 
-									String query3 = "match (asc:association) where asc.id = {id}  optional match p1= (asc)--(:Port)--(a) optional match p2=(a)-[:resideIn*]-(m)  return [a.id, m.id] as idList, [p1,p2] as pathList";
+									// query3 = "match (asc:association) where asc.id = {id}  optional match p1= (asc)--(:Port)--(a) optional match p2=(a)-[:resideIn*]-(m)  return [a.id, m.id] as idList, [p1,p2] as pathList";
+									String  query3 = "match (asc:association) where asc.id = {id}  optional match p3= (asc)-[]-(c)  optional match p4=(c)-[:resideIn*]-(d)   return  [c.id, d.id] as idList, [p3,p4] as pathList";
+
+									
 									Map<String, Object> parameters3 = new HashMap<String, Object>();
 
 									parameters3.put("id", blistitem.getProperty("id"));
@@ -983,7 +1102,10 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 								} else if (blistitemlabel.name().equals("dissociation")) {
 
-									String query3 = "match (asc:dissociation) where asc.id = {id}  optional match p1= (asc)--(:Port)--(a) optional match p2=(a)-[:resideIn*]-(m)  return [a.id, m.id] as idList, [p1,p2] as pathList";
+									//String query3 = "match (asc:dissociation) where asc.id = {id}  optional match p1= (asc)--(:Port)--(a) optional match p2=(a)-[:resideIn*]-(m)  return [a.id, m.id] as idList, [p1,p2] as pathList";
+									String  query3 = "match (asc:dissociation) where asc.id = {id}  optional match p3= (asc)-[]-(c)  optional match p4=(c)-[:resideIn*]-(d)   return  [c.id, d.id] as idList, [p3,p4] as pathList";
+
+									
 									Map<String, Object> parameters3 = new HashMap<String, Object>();
 
 									parameters3.put("id", blistitem.getProperty("id"));
@@ -997,8 +1119,63 @@ private String HighlightSeed(String genesList) throws JAXBException {
 										pathList.addAll((List<Path>) row3.get("pathList"));
 
 									}
-								}
+								}								
+							
+									 else if (blistitemlabel.name().equals("or")) {
 
+											String query3 = "match (p:or) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+											
+											
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+
+												FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												pathList.addAll((List<Path>) row3.get("pathList"));
+
+											}
+										}
+									 else if (blistitemlabel.name().equals("and")) {
+
+											String 	query3 = "match (p:and) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+											
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+
+												FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												pathList.addAll((List<Path>) row3.get("pathList"));
+
+											}
+										}
+									 else if (blistitemlabel.name().equals("not")) {
+
+											String 	query3 = "match (p:not) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+											
+											Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+											parameters3.put("id", blistitem.getProperty("id"));
+
+											Result result3 = db.execute(query3, parameters3);
+
+											while (result3.hasNext()) {
+												Map<String, Object> row3 = result3.next();
+
+												FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+												pathList.addAll((List<Path>) row3.get("pathList"));
+
+											}
+										}
 								else {
 									FreshIdListToIterate.add(blistitem.getProperty("id"));
 									pathList.add((Path) row.get("p"));
@@ -1133,6 +1310,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 			while (resulte.hasNext()) {
 				Map<String, Object> row = resulte.next();
 				idListWithSiblings.addAll((List<Object>) row.get("idlist"));
+				//idListWithSiblings.addAll((List<Object>) row.get("cidlist"));
 			}
 
 			root.FreshIdListToIterate.addAll(idListWithSiblings);
@@ -1175,7 +1353,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 							blistitem.getLabels().forEach(blistitemlabel -> {
 
-								if (blistitemlabel.name().equals("Port")) {
+							/*	if (blistitemlabel.name().equals("Port")) {
 
 									String query3 = ifGlyphIsPort(direction);
 									Map<String, Object> parameters3 = new HashMap<String, Object>();
@@ -1192,7 +1370,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 										root.pathList.addAll((List<Path>) row3.get("pathList"));
 									}
 
-								} else if (blistitemlabel.name().equals("process")) {
+								} else*/ if (blistitemlabel.name().equals("process")) {
 
 									String query3 = ifGlyphIsProcess(direction);
 
@@ -1279,6 +1457,57 @@ private String HighlightSeed(String genesList) throws JAXBException {
 									}
 								}
 
+								/*else if (blistitemlabel.name().equals("or")) {
+
+									String query3 = ifGlyphIsOr(direction);
+
+									Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+									parameters3.put("id", blistitem.getProperty("id"));
+
+									Result result3 = db.execute(query3, parameters3);
+
+									while (result3.hasNext()) {
+										Map<String, Object> row3 = result3.next();
+										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+										root.pathList.addAll((List<Path>) row3.get("pathList"));
+									}
+								}
+								else if (blistitemlabel.name().equals("and")) {
+
+									String query3 = ifGlyphIsAnd(direction);
+
+									Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+									parameters3.put("id", blistitem.getProperty("id"));
+
+									Result result3 = db.execute(query3, parameters3);
+
+									while (result3.hasNext()) {
+										Map<String, Object> row3 = result3.next();
+										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+										root.pathList.addAll((List<Path>) row3.get("pathList"));
+									}
+								}
+								else if (blistitemlabel.name().equals("not")) {
+
+									String query3 = ifGlyphIsNot(direction);
+
+									Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+									parameters3.put("id", blistitem.getProperty("id"));
+
+									Result result3 = db.execute(query3, parameters3);
+
+									while (result3.hasNext()) {
+										Map<String, Object> row3 = result3.next();
+										AddToFreshPidTupleList(root.FreshIdMap, (List<Object>) row3.get("idList"), pid);
+										root.FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+										root.pathList.addAll((List<Path>) row3.get("pathList"));
+									}
+								}*/
 								else {
 									// root.FreshIdListToIterate.add(blistitem.getProperty("id"));
 									// List<Object> lst = new
@@ -1378,13 +1607,23 @@ private String HighlightSeed(String genesList) throws JAXBException {
 						}
 					});
 
-					String queryToPurify = "match (a) where a.id = {Sourceid} with a  optional match (b)  where  b.id in {finalNodes} with a, b optional match  p= (a)-[r*]-(b)  where  all(rv IN  nodes(p)  WHERE rv in {nodes} )  unwind nodes(p) as pNode with DISTINCT pNode, p optional match p2= (pNode)-[:resideIn*]-(ac)  return [p,p2] as pathList";
+					/*String maxLengthStr = "*0.."+  ((limit) *2);
+					
+					//String queryToPurify = "match (a) where a.id = {Sourceid} with a  match (b)  where  b.id in {finalNodes} with a, b optional match  p= (a)-["+maxLengthStr +"]-(b) where  all(rv IN  nodes(p)  WHERE rv in {nodes} )  unwind nodes(p) as pNode with DISTINCT pNode, p optional match p2= (pNode)-[:resideIn*]-(ac)  return [p,p2] as pathList";
+					String queryToPurify =	"match  p= (a)-[ro:catalysis|consumption|stimulation|consumption|logic_arc|necessary_stimulation| equivalence_arc | inhibition |modulation"
+					+maxLengthStr +"]-(b) where  a.id ={Sourceid} and b.id in {finalNodes} and all(rv IN  nodes(p)  WHERE rv.id in {nodes} )   return [p] as pathList";
+*/
+String maxLengthStr = "*0.."+  ((limit+1) *2);
+					
+					//String queryToPurify = "match (a) where a.id = {Sourceid} with a  match (b)  where  b.id in {finalNodes} with a, b optional match  p= (a)-["+maxLengthStr +"]-(b) where  all(rv IN  nodes(p)  WHERE rv in {nodes} )  unwind nodes(p) as pNode with DISTINCT pNode, p optional match p2= (pNode)-[:resideIn*]-(ac)  return [p,p2] as pathList";
+					String queryToPurify =	"match  p= (a)-["+maxLengthStr +"]-(b) where  a.id ={Sourceid} and b.id in {finalNodes} and all(rv IN  nodes(p)  WHERE rv.id in {nodes} )  unwind nodes(p) as pNode with DISTINCT pNode, p optional match p2= (pNode)-[:resideIn*]-(ac)  return [p,p2] as pathList";
 
 					Map<String, Object> parametersPurify = new HashMap<String, Object>();
 
 					parametersPurify.put("Sourceid", rootItem.nodeId);
+					//idListTarget.retainAll(nodesList.keySet());
 					parametersPurify.put("finalNodes", idListTarget);
-					parametersPurify.put("nodes", nodesList.values());
+					parametersPurify.put("nodes", nodesList.keySet());
 
 					Result resultPurify = db.execute(queryToPurify, parametersPurify);
 					Set<Path> pathListForFinal = new HashSet<Path>();
@@ -1471,7 +1710,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 			// GOINodeContainer
 			GOINodeContainer gOINodeContainer = new GOINodeContainer();
 			Object nodeId = nodeItem.getProperty("id");
-			;
+			
 			gOINodeContainer.rootId = (String) nodeId;
 			gOINodeContainer.rootLabel = nodeItem.getProperty("label").toString();
 			gOINodeContainer.GOINodeObjectList.put((String) nodeId, new GOINodeObject((String) nodeId, 0));
@@ -1521,7 +1760,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 							for (org.neo4j.graphdb.Label blistitemlabel : blistitem.getLabels()) {
 
-								if (blistitemlabel.name().equals("Port")) {
+								/*if (blistitemlabel.name().equals("Port")) {
 
 									String query3 = ifGlyphIsPort(direction);
 
@@ -1542,7 +1781,8 @@ private String HighlightSeed(String genesList) throws JAXBException {
 												(List<Path>) row3.get("pathList"), depth3);
 									}
 
-								} else if (blistitemlabel.name().equals("process")) {
+								} else*/
+								if (blistitemlabel.name().equals("process")) {
 
 									String query3 = ifGlyphIsProcess(direction);
 
@@ -1644,6 +1884,68 @@ private String HighlightSeed(String genesList) throws JAXBException {
 									}
 
 								}
+								/*else if (blistitemlabel.name().equals("or")) {
+
+									String query3 = ifGlyphIsOr(direction);
+									Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+									parameters3.put("id", blistitem.getProperty("id"));
+
+									Result result3 = db.execute(query3, parameters3);
+
+									while (result3.hasNext()) {
+										Map<String, Object> row3 = result3.next();
+										gOINodeContainer.pathListforlabelallglyphs
+												.addAll((List<Path>) row3.get("pathList"));
+										FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+										double depth3 = limita - limit;
+										GoiNodePathExtract(gOINodeContainer, (List<String>) row3.get("idList"),
+												(List<Path>) row3.get("pathList"), depth3);
+									}
+
+								}
+								
+								else if (blistitemlabel.name().equals("and")) {
+
+									String query3 = ifGlyphIsAnd(direction);
+									Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+									parameters3.put("id", blistitem.getProperty("id"));
+
+									Result result3 = db.execute(query3, parameters3);
+
+									while (result3.hasNext()) {
+										Map<String, Object> row3 = result3.next();
+										gOINodeContainer.pathListforlabelallglyphs
+												.addAll((List<Path>) row3.get("pathList"));
+										FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+										double depth3 = limita - limit;
+										GoiNodePathExtract(gOINodeContainer, (List<String>) row3.get("idList"),
+												(List<Path>) row3.get("pathList"), depth3);
+									}
+
+								}
+								
+								else if (blistitemlabel.name().equals("not")) {
+
+									String query3 = ifGlyphIsNot(direction);
+									Map<String, Object> parameters3 = new HashMap<String, Object>();
+
+									parameters3.put("id", blistitem.getProperty("id"));
+
+									Result result3 = db.execute(query3, parameters3);
+
+									while (result3.hasNext()) {
+										Map<String, Object> row3 = result3.next();
+										gOINodeContainer.pathListforlabelallglyphs
+												.addAll((List<Path>) row3.get("pathList"));
+										FreshIdListToIterate.addAll((List<Object>) row3.get("idList"));
+										double depth3 = limita - limit;
+										GoiNodePathExtract(gOINodeContainer, (List<String>) row3.get("idList"),
+												(List<Path>) row3.get("pathList"), depth3);
+									}
+
+								}*/
 
 								else {
 									FreshIdListToIterate.add(blistitem.getProperty("id"));
@@ -1769,7 +2071,11 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 			);
 
-			String queryToPurify = "match (a) where a.id = {SourceidList} with a  optional match (b)  where not b:Port and not b:process and b.id in {finalNodes} with a, b optional match  p= (a)-[r*]-(b) where  all(rv IN  nodes(p)  WHERE rv in {nodas} or rv.id in {SourceidList})   return relationships(p) as rels, nodes(p) as nodes";
+			int maxLength = (int) (limita+1) *2 ;
+			String maxLengthStr = "*0.."+  maxLength;
+			//String queryToPurify = "match (a) where a.id = {SourceidList} with a  optional match (b)  where not b:Port and not b:process and b.id in {finalNodes} with a, b optional match  p= (a)-["+ maxLengthStr+"]-(b) where  all(rv IN  nodes(p)  WHERE rv in {nodas} or rv.id in {SourceidList})   return relationships(p) as rels, nodes(p) as nodes";
+
+			String queryToPurify = "match  p= (a)-["+ maxLengthStr+"]-(b) where a.id = {SourceidList} and not b:Port and not b:process and b.id in {finalNodes} and all(rv IN  nodes(p)  WHERE rv in {nodas} or rv.id in {SourceidList})   return relationships(p) as rels, nodes(p) as nodes";
 
 			Map<String, Object> parametersPurify = new HashMap<String, Object>();
 
@@ -1843,9 +2149,9 @@ private String HighlightSeed(String genesList) throws JAXBException {
 			targetid = FormatSourceOrTarget(((Port) a.getTarget()).getId());
 		}
 
-		String query = "MATCH (a) where  a.id= '" + sourceid + "'  Match (b) where b.id='" + targetid + "' Merge (a)-[:"
+		String query = "MATCH (a) where  a.id= '" + sourceid + "' or a.port1id = '"+ sourceid+ "' or a.port2id = '"+ sourceid+"' Match (b) where b.id='" + targetid + "' or b.port1id = '"+ targetid+ "' or b.port2id = '"+ targetid+ "' Merge (a)-[:"
 				+ a.getClazz().replaceAll(" ", "_")
-				+ " {startY: {startY} , startX: {startX}, endX: {endX} , endY: {endY} , aid: {aid} } ]-> (b)";
+				+ " {startY: {startY} , startX: {startX}, endX: {endX} , endY: {endY} , aid: {aid}, sourceid: {sourceid}, targetid: {targetid} } ]-> (b)";
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters.put("startY", startY);
@@ -1853,6 +2159,8 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		parameters.put("endX", endX);
 		parameters.put("endY", endY);
 		parameters.put("aid", aid);
+		parameters.put("sourceid", sourceid);
+		parameters.put("targetid", targetid);
 
 		db.execute(query, parameters);
 
@@ -1884,7 +2192,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		if (g.getCompartmentRef() != null)
 			compRef = ((Glyph) g.getCompartmentRef()).getId();
 		String query = "MERGE (a:" + g.getClazz().replaceAll(" ", "_")
-				+ "{label: {label} , id: {id}, x: {x}, y: {y}, w: {w},  h: {h}, compRef: {compRef}, stateVal: {stateVal}, stateVariable: {stateVariable} })";
+				+ "{label: {label} , id: {id}, x: {x}, y: {y}, w: {w},  h: {h}, compRef: {compRef}, stateVal: {stateVal}, stateVariable: {stateVariable},  port1id: {port1id},  port2id: {port2id} , port1x: {port1x},  port1y: {port1y}, port2x: {port2x},  port2y: {port2y}  })";
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters.put("label", label);
 		parameters.put("id", gid);
@@ -1895,18 +2203,41 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		parameters.put("compRef", compRef);
 		parameters.put("stateVal", stateVal);
 		parameters.put("stateVariable", stateVariable);
-
+		if (g.getPort().size() == 1) {
+			parameters.put("port1id",  g.getPort().get(0).getId());
+			parameters.put("port1x", (float)  g.getPort().get(0).getX());
+			parameters.put("port1y", (float)  g.getPort().get(0).getY());
+			parameters.put("port2id", "");
+			parameters.put("port2x", (float) 4402);
+			parameters.put("port2y", (float) 4402);
+		}else if (g.getPort().size() == 2) {
+			
+			parameters.put("port1id", g.getPort().get(0).getId());
+			parameters.put("port1x", (float) g.getPort().get(0).getX());
+			parameters.put("port1y", (float)  g.getPort().get(0).getY());
+			parameters.put("port2id", g.getPort().get(1).getId());
+			parameters.put("port2x", (float)  g.getPort().get(1).getX());
+			parameters.put("port2y", (float)  g.getPort().get(1).getY());
+		}else{
+			parameters.put("port1id", "");
+			parameters.put("port1x",(float) 4402);
+			parameters.put("port1y", (float) 4402);
+			parameters.put("port2id",  "");
+			parameters.put("port2x", (float) 4402);
+			parameters.put("port2y", (float) 4402);
+		}
+		
 		db.execute(query, parameters);
 
 		if (g.getGlyph().size() > 0) {
 			g.getGlyph().forEach(item -> InsertGlyph(item));
 			g.getGlyph().forEach(item2 -> RelateToParent(g, item2));
 		}
-		if (g.getPort().size() > 0) {
+		/*if (g.getPort().size() > 0) {
 			g.getPort().forEach(item -> InsertPort(item, g.getId()));
 			// g.getPort().forEach(item2->RelatePParent(g, item2) );
 
-		}
+		}*/
 	}
 
 	private void InsertPort(Port g, String parentId) {
@@ -2008,7 +2339,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		org.sbgn.bindings.Map sbgnMap = new org.sbgn.bindings.Map();
 
 		Result result = db.execute(
-				"Match (g) where  not g:Port optional match (g)<-[:resideIn]-(gc) optional match (g)-[:hasPort]->(p:Port) return g, collect(gc) as childGlyph, collect(p) as ports order by g.id");
+				"Match (g)  optional match (g)<-[:resideIn]-(gc) return g, collect(gc) as childGlyph order by g.id");
 		while (result.hasNext()) {
 			Map<String, Object> row = result.next();
 
@@ -2055,21 +2386,35 @@ private String HighlightSeed(String genesList) throws JAXBException {
 			state.setValue(st);
 			state.setVariable(stVar);
 			glyph.setState(state);
-			ports.forEach(item -> {
-				Port port = new Port();
-				float xPort = (float) item.getProperty("x");
-				float yPort = (float) item.getProperty("y");
-				String Pid = (String) item.getProperty("id");
+			
+				Port port1= new Port();
+				
+				String Pid1 = (String) ((Node) row.get("g")).getProperty("port1id");
+				if(!Pid1.equals("")){
+				port1.setId(Pid1);
+				float xPort1 = (float) ((Node) row.get("g")).getProperty("port1x");
+				float yPort1 = (float) ((Node) row.get("g")).getProperty("port1y");
+				port1.setX((float)xPort1);
+				port1.setY((float)yPort1);
 
-				port.setId(Pid);
-				port.setX((int) xPort);
-				port.setY((int) yPort);
+				glyph.getPort().add(port1);
+				portlist.put(Pid1, port1);
+				}
+			
+				Port port2= new Port();				
+				String Pid2 = (String) ((Node) row.get("g")).getProperty("port2id");
+				
 
-				glyph.getPort().add(port);
-				portlist.put(Pid, port);
+				if(!Pid2.equals("")){
+				port2.setId(Pid2);
+				float xPort2 = (float) ((Node) row.get("g")).getProperty("port2x");
+				float yPort2 = (float) ((Node) row.get("g")).getProperty("port2y");
+				port2.setX((float)xPort2);
+				port2.setY((float)yPort2);
 
-			});
-
+				glyph.getPort().add(port2);
+				portlist.put(Pid2, port2);
+				}
 			childGlyphs.forEach(item -> {
 
 				Glyph childglyph;
@@ -2124,7 +2469,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 			glist.putIfAbsent(glyph.getId(), glyph);
 		}
 
-		String query = "MATCH (a)-[r]->(b) where r.startX is not null return a.id as sid,b.id as tid, r.startX as xx,r.startY as yy, r.endX as ex, r.endY as ey, r.aid as id, type(r) as class";
+		String query = "MATCH (a)-[r]->(b) where r.startX is not null return r.sourceid as sid, r.targetid as tid, r.startX as xx,r.startY as yy, r.endX as ex, r.endY as ey, r.aid as id, type(r) as class";
 
 		Result result2 = db.execute(query);
 
@@ -2238,7 +2583,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 			state.setVariable(stVar);
 			glyph.setState(state);
 
-			// ports
+			/*// ports
 			ports.forEach(item -> {
 				Port port = new Port();
 				float xPort = (float) item.getProperty("x");
@@ -2252,7 +2597,38 @@ private String HighlightSeed(String genesList) throws JAXBException {
 				glyph.getPort().add(port);
 				portlist.put(Pid, port);
 
-			});
+			});*/
+			
+			Port port1= new Port();
+			
+			String Pid1 = (String) ((Node) row.get("g")).getProperty("port1id");
+			if(!Pid1.equals("")){
+			port1.setId(Pid1);
+			float xPort1 = (float) ((Node) row.get("g")).getProperty("port1x");
+			float yPort1 = (float) ((Node) row.get("g")).getProperty("port1y");
+			port1.setX((float)xPort1);
+			port1.setY((float)yPort1);
+			
+
+			glyph.getPort().add(port1);
+			portlist.put(Pid1, port1);
+			}
+		
+			Port port2= new Port();
+			
+			String Pid2 = (String) ((Node) row.get("g")).getProperty("port2id");
+			
+
+			if(!Pid2.equals("")){
+			port2.setId(Pid2);
+			float xPort2 = (float) ((Node) row.get("g")).getProperty("port2x");
+			float yPort2 = (float) ((Node) row.get("g")).getProperty("port2y");
+			port2.setX((float)xPort2);
+			port2.setY((float)yPort2);
+
+			glyph.getPort().add(port2);
+			portlist.put(Pid2, port2);
+			}
 
 			childGlyphs.forEach(item -> {
 
@@ -2498,7 +2874,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 	private void retrieveRelationsForResultSBGNMap(GraphDatabaseService graphDb, Collection<Relationship> collection,
 			HashMap<String, Glyph> glist, HashMap<String, Port> portlist, org.sbgn.bindings.Map sbgnMap) {
-		String query = "MATCH (a)-[r]->(b) where r.startX is not null  and r in {rels} return a.id as sid,b.id as tid, r.startX as xx,r.startY as yy, r.endX as ex, r.endY as ey, r.aid as id, type(r) as class";
+		String query = "MATCH (a)-[r]->(b) where r in {rels} and r.startX is not null return r.sourceid as sid, r.targetid as tid, r.startX as xx,r.startY as yy, r.endX as ex, r.endY as ey, r.aid as id, type(r) as class";
 
 		Map<String, Object> parameters1 = new HashMap<String, Object>();
 
@@ -2543,36 +2919,8 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		}
 	}
 
-	private String ifGlyphIsDissociation(double direction) {
-		String query3 = "";
-		if (direction == 1) {
-			query3 = "match (asc:dissociation) where asc.id = {id}  optional match p1= (asc)--(:Port)-[]->(a) optional match p2=(a)-[:resideIn*]-(b)  return  [a.id, b.id] as idList, [p1,p2] as pathList";
-
-		} else if (direction == 2) {
-			query3 = "match (asc:dissociation) where asc.id = {id}  optional match p1= (asc)--(:Port)<-[]-(a) optional match p2=(a)-[:resideIn*]-(b)  return  [a.id, b.id] as idList, [p1,p2] as pathList";
-
-		} else if (direction == 0) {
-			query3 = "match (asc:dissociation) where asc.id = {id}  optional match p1= (asc)--(:Port)--(a) optional match p2=(a)-[:resideIn*]-(b)  return  [a.id, b.id] as idList, [p1,p2] as pathList";
-
-		}
-		return query3;
-	}
-
-	private String ifGlyphIsAssociation(double direction) {
-		String query3 = "";
-		if (direction == 1) {
-			query3 = "match (asc:association) where asc.id = {id}  optional match p1= (asc)--(:Port)-[]->(a) optional match p2=(a)-[:resideIn*]-(b)  return  [a.id, b.id] as idList, [p1,p2] as pathList";
-
-		} else if (direction == 2) {
-			query3 = "match (asc:association) where asc.id = {id}  optional match p1= (asc)--(:Port)<-[]-(a) optional match p2=(a)-[:resideIn*]-(b)  return [a.id, b.id] as idList, [p1,p2] as pathList";
-
-		} else if (direction == 0) {
-			query3 = "match (asc:association) where asc.id = {id}  optional match p1= (asc)--(:Port)--(a) optional match p2=(a)-[:resideIn*]-(b)  return  [a.id, b.id] as idList, [p1,p2] as pathList";
-
-		}
-		return query3;
-	}
-
+	
+/*
 	private String ifGlyphIsUncertainProcess(double direction) {
 		String query3 = "";
 		if (direction == 1) {
@@ -2623,7 +2971,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		}
 		return query3;
 	}
-
+*/
 	private void addPathItemToPathListContainerOfRoot(double count, PathsBetweenRoot root) {
 
 		for (FreshIdItem freshid : root.FreshIdMap.values()) {
@@ -2677,7 +3025,7 @@ private String HighlightSeed(String genesList) throws JAXBException {
 
 			for (org.neo4j.graphdb.Label blistitemlabel : blistitem.getLabels()) {
 
-				if (blistitemlabel.name().equals("Port")) {
+				/*if (blistitemlabel.name().equals("Port")) {
 
 					String query3 = ifGlyphIsPort(direction);
 					Map<String, Object> parameters3 = new HashMap<String, Object>();
@@ -2688,7 +3036,8 @@ private String HighlightSeed(String genesList) throws JAXBException {
 						pathList.addAll((List<Path>) row3.get("pathList"));
 					}
 
-				} else if (blistitemlabel.name().equals("process")) {
+				} 
+				else*/ if (blistitemlabel.name().equals("process")) {
 
 					String query3 = ifGlyphIsProcess(direction);
 
@@ -2758,6 +3107,41 @@ private String HighlightSeed(String genesList) throws JAXBException {
 					}
 
 				}
+				/*else if (blistitemlabel.name().equals("or")) {
+
+					String query3 = ifGlyphIsOr(direction);
+					Map<String, Object> parameters3 = new HashMap<String, Object>();
+					parameters3.put("id", blistitem.getProperty("id"));
+					Result result3 = graphDb.execute(query3, parameters3);
+					while (result3.hasNext()) {
+						Map<String, Object> row3 = result3.next();
+						pathList.addAll((List<Path>) row3.get("pathList"));
+					}
+
+				}
+				else if (blistitemlabel.name().equals("and")) {
+
+					String query3 = ifGlyphIsAnd(direction);
+					Map<String, Object> parameters3 = new HashMap<String, Object>();
+					parameters3.put("id", blistitem.getProperty("id"));
+					Result result3 = graphDb.execute(query3, parameters3);
+					while (result3.hasNext()) {
+						Map<String, Object> row3 = result3.next();
+						pathList.addAll((List<Path>) row3.get("pathList"));
+					}
+
+				}
+				else if (blistitemlabel.name().equals("not")) {
+
+					String query3 = ifGlyphIsNot(direction);
+					Map<String, Object> parameters3 = new HashMap<String, Object>();
+					parameters3.put("id", blistitem.getProperty("id"));
+					Result result3 = graphDb.execute(query3, parameters3);
+					while (result3.hasNext()) {
+						Map<String, Object> row3 = result3.next();
+						pathList.addAll((List<Path>) row3.get("pathList"));
+					}
+				}	*/		
 
 				else {
 					;
@@ -2767,6 +3151,135 @@ private String HighlightSeed(String genesList) throws JAXBException {
 		}
 	}
 
+	
+	private String ifGlyphIsUncertainProcess(double direction) {	
+		String query3 = "";			
+		if (direction == 1) {
+			query3 = "match (p:uncertain_process) where p.id = {id} optional match p2=(p)-[]->(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 2) {
+			query3 = "match (p:uncertain_process) where p.id = {id} optional match p2=(p)<-[]-(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 0) {
+			query3 = "match (p:uncertain_process) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		}
+		return query3;
+	}
+
+	private String ifGlyphIsOmittedProcess(double direction) {
+		String query3 = "";	
+		if (direction == 1) {
+			query3 = "match (p:omitted_process) where p.id = {id} optional match p2=(p)-[]->(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 2) {
+			query3 = "match (p:omitted_process) where p.id = {id} optional match p2=(p)<-[]-(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 0) {
+			query3 = "match (p:omitted_process) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		}
+		return query3;
+	}
+		
+
+	private String ifGlyphIsProcess(double direction) {
+		String query3 = "";
+		if (direction == 1) {
+			query3 = "match (p:process) where p.id = {id} optional match p2=(p)-[]->(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 2) {
+			query3 = "match (p:process) where p.id = {id} optional match p2=(p)<-[]-(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 0) {
+			query3 = "match (p:process) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		}
+		return query3;
+	}
+	
+	
+	private String ifGlyphIsOr(double direction) {
+		String query3 = "";
+		if (direction == 1) {
+			query3 = "match (p:or) where p.id = {id} optional match p2=(p)-[]->(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 2) {
+			query3 = "match (p:or) where p.id = {id} optional match p2=(p)<-[]-(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 0) {
+			query3 = "match (p:or) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		}
+		return query3;
+	}
+	
+	private String ifGlyphIsAnd(double direction) {
+		String query3 = "";
+		if (direction == 1) {
+			query3 = "match (p:and) where p.id = {id} optional match p2=(p)-[]->(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 2) {
+			query3 = "match (p:and) where p.id = {id} optional match p2=(p)<-[]-(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 0) {
+			query3 = "match (p:and) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		}	
+		
+		
+		return query3;
+	}
+	
+
+	private String ifGlyphIsNot(double direction) {
+		String query3 = "";
+		if (direction == 1) {
+			query3 = "match (p:not) where p.id = {id} optional match p2=(p)-[]->(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 2) {
+			query3 = "match (p:not) where p.id = {id} optional match p2=(p)<-[]-(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		} else if (direction == 0) {
+			query3 = "match (p:not) where p.id = {id} optional match p2=(p)--(b) optional match p4=(b)-[:resideIn*]-(d) return [b.id,d.id] as idList,  [p2,p4] as pathList";
+		}
+		return query3;
+	}
+	
+	private String ifGlyphIsPort(double direction) {
+		String query3 = "";
+		if (direction == 0) {
+			query3 = "match (po:Port) where po.id = {id} optional match p1= (po)--(pr)--(:Port)--(a) where pr:or or pr:not or pr:and or  pr:dissociation or pr:process or pr:association or pr:omitted_process or pr:uncertain_process optional match p4=(a)-[:resideIn*]-(m) optional match p2 = (po)--(:process)--(b) where not b:Port optional match p7= (po)--(:omitted_process)--(f) where not f:Port optional match p8= (po)--(:uncertain_process)--(g) where not g:Port optional match p9 = (po)--(:and)--(r) where not r:Port optional match p10= (po)--(:or)--(s) where not s:Port optional match p11= (po)--(:not)--(t) where not t:Port optional match p12=(x)-[:resideIn*]-(f) optional match p13=(y)-[:resideIn*]-(g) optional match p14=(z)-[:resideIn*]-(r) optional match p15=(v)-[:resideIn*]-(s) optional match p16=(q)-[:resideIn*]-(t) optional match p5=(b)-[:resideIn*]-(n) optional match p3 = (po)--(c) where not c:or and not c:and and not c:not and not c:process and not c:omitted_process and not c:uncertain_process and not c:association  and not c:dissociation optional match p6=(c)-[:resideIn*]-(k) optional match p17 = (po)--()--(:Port)-[:logic_arc]-()--(ee)  optional match p18=(ee)-[:resideIn*]-(vv)   return [a.id, b.id, c.id, f.id, g.id, m.id, n.id, k.id, r.id, s.id, t.id,x.id,y.id,z.id, v.id, q.id, ee.id, vv.id ] as idList, [p1,p2,p3,p4,p5,p6,p7,p8, p9,p10,p11,p12,p13,p14,p15,p16,p17,p18] as pathList";
+		} else if (direction == 1) {
+			query3 = "match (po:Port) where po.id = {id} optional match p1= (po)--(pr)--(:Port)-[]->(a) where pr:or or pr:not or pr:and or  pr:dissociation or pr:process or pr:association or pr:omitted_process or pr:uncertain_process optional match p4=(a)-[:resideIn*]-(m) optional match p2 = (po)--(:process)-[]->(b) where not b:Port optional match p7= (po)--(:omitted_process)-[]->(f) where not f:Port optional match p8= (po)--(:uncertain_process)-[]->(g) where not g:Port optional match p9 = (po)--(:and)-[]->(r) where not r:Port optional match p10= (po)--(:or)-[]->(s) where not s:Port optional match p11= (po)--(:not)-[]->(t) where not t:Port optional match p12=(x)-[:resideIn*]-(f) optional match p13=(y)-[:resideIn*]-(g) optional match p14=(z)-[:resideIn*]-(r) optional match p15=(v)-[:resideIn*]-(s) optional match p16=(q)-[:resideIn*]-(t) optional match p5=(b)-[:resideIn*]-(n) optional match p3 = (po)-[]->(c) where not c:or and not c:and and not c:not and not c:process and not c:omitted_process and not c:uncertain_process and not c:association  and not c:dissociation optional match p6=(c)-[:resideIn*]-(k) optional match p17 = (po)--()--(:Port)-[:logic_arc]-()--(ee)  optional match p18=(ee)-[:resideIn*]-(vv)   return [a.id, b.id, c.id, f.id, g.id, m.id, n.id, k.id, r.id, s.id, t.id,x.id,y.id,z.id, v.id, q.id, ee.id, vv.id ] as idList, [p1,p2,p3,p4,p5,p6,p7,p8, p9,p10,p11,p12,p13,p14,p15,p16,p17,p18] as pathList";
+		
+		} else if (direction == 2) {
+			query3 = "match (po:Port) where po.id = {id} optional match p1= (po)--(pr)--(:Port)<-[]-(a) where pr:or or pr:not or pr:and or  pr:dissociation or pr:process or pr:association or pr:omitted_process or pr:uncertain_process optional match p4=(a)-[:resideIn*]-(m) optional match p2 = (po)--(:process)<-[]-(b) where not b:Port optional match p7= (po)--(:omitted_process)<-[]-(f) where not f:Port optional match p8= (po)--(:uncertain_process)<-[]-(g) where not g:Port optional match p9 = (po)--(:and)<-[]-(r) where not r:Port optional match p10= (po)--(:or)<-[]-(s) where not s:Port optional match p11= (po)--(:not)<-[]-(t) where not t:Port optional match p12=(x)-[:resideIn*]-(f) optional match p13=(y)-[:resideIn*]-(g) optional match p14=(z)-[:resideIn*]-(r) optional match p15=(v)-[:resideIn*]-(s) optional match p16=(q)-[:resideIn*]-(t) optional match p5=(b)-[:resideIn*]-(n) optional match p3 = (po)<-[]-(c) where not c:or and not c:and and not c:not and not c:process and not c:omitted_process and not c:uncertain_process and not c:association  and not c:dissociation optional match p6=(c)-[:resideIn*]-(k) optional match p17 = (po)--()--(:Port)-[:logic_arc]-()--(ee)  optional match p18=(ee)-[:resideIn*]-(vv)   return [a.id, b.id, c.id, f.id, g.id, m.id, n.id, k.id, r.id, s.id, t.id,x.id,y.id,z.id, v.id, q.id, ee.id, vv.id ] as idList, [p1,p2,p3,p4,p5,p6,p7,p8, p9,p10,p11,p12,p13,p14,p15,p16,p17,p18] as pathList";				
+		}
+		return query3;
+	}
+
+	private String ifGlyphIsDissociation(double direction) {
+		String query3 = "";
+		if (direction == 1) {
+			query3 = "match (asc:dissociation) where asc.id = {id}  optional match p3= (asc)-[]->(c)  optional match p4=(c)-[:resideIn*]-(d)   return  [c.id, d.id] as idList, [p3,p4] as pathList";
+
+		} else if (direction == 2) {
+			query3 = "match (asc:dissociation) where asc.id = {id}  optional match p3= (asc)<-[]-(c)  optional match p4=(c)-[:resideIn*]-(d)   return  [c.id, d.id] as idList, [p3,p4] as pathList";
+
+		} else if (direction == 0) {
+			query3 = "match (asc:dissociation) where asc.id = {id}  optional match p3= (asc)-[]-(c)  optional match p4=(c)-[:resideIn*]-(d)   return  [c.id, d.id] as idList, [p3,p4] as pathList";
+
+		}
+		return query3;
+	}
+
+
+
+	private String ifGlyphIsAssociation(double direction) {
+		String query3 = "";
+		
+		
+		if (direction == 1) {
+			query3 = "match (asc:association) where asc.id = {id}  optional match p3= (asc)-[]->(c)  optional match p4=(c)-[:resideIn*]-(d)   return  [c.id, d.id] as idList, [p3,p4] as pathList";
+
+		} else if (direction == 2) {
+			query3 = "match (asc:association) where asc.id = {id}  optional match p3= (asc)<-[]-(c)  optional match p4=(c)-[:resideIn*]-(d)   return  [c.id, d.id] as idList, [p3,p4] as pathList";
+
+		} else if (direction == 0) {
+			query3 = "match (asc:association) where asc.id = {id}  optional match p3= (asc)-[]-(c)  optional match p4=(c)-[:resideIn*]-(d)   return  [c.id, d.id] as idList, [p3,p4] as pathList";
+
+		}	
+			
+	
+		return query3;
+	}
+
+	
+	
 	private void Traverse1AndExtractRelationsAndNodeForProcesses(GraphDatabaseService graphDb,
 			Set<Node> nodesListPurify, Set<Relationship> relsListPurify) {
 		Set<Path> pathListforPostProcess = new HashSet<Path>();
